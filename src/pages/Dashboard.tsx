@@ -30,6 +30,7 @@ export default function Dashboard({ session, onLogout }: DashboardProps) {
 
   return (
     <main className="min-h-screen bg-[#0f1419] px-4 py-8 text-white sm:px-6 lg:px-8">
+      {/* TypeScript: RippleButton/Button/Card/Badge components are JS and can have strict prop typing issues. */}
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
         <div className="flex items-center justify-between gap-4 rounded-3xl border border-border/70 bg-card/60 px-6 py-4 backdrop-blur-xl">
           <div>
@@ -47,7 +48,7 @@ export default function Dashboard({ session, onLogout }: DashboardProps) {
               className="bg-primary text-white hover:bg-primary/90"
               onClick={() => {
                 onLogout()
-                navigate('/')
+                navigate('/', { replace: true })
               }}
             >
               <LogOut className="size-4" />
