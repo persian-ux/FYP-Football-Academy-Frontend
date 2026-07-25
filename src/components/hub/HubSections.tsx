@@ -141,7 +141,19 @@ export function HubHeader({
           aria-label="Scroll to hero section"
         >
           <span className="grid size-10 place-items-center rounded-2xl border border-primary/30 bg-primary/10 text-primary shadow-[0_0_25px_rgba(0,153,255,0.25)]">
-            <Compass className="size-5" />
+            <svg
+              viewBox="0 0 48 48"
+              className="size-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+            >
+              {/* Outer spinning ring */}
+              <circle cx="24" cy="24" r="20" className="animate-spin" stroke="currentColor" strokeWidth="3" strokeDasharray="90 35" strokeLinecap="round" />
+              {/* Inner counter-spinning ring */}
+              <circle cx="24" cy="24" r="12" className="animate-spin-reverse" stroke="currentColor" strokeWidth="3" strokeDasharray="50 25" strokeLinecap="round" />
+              {/* Center accent dot */}
+              <circle cx="24" cy="24" r="3" fill="currentColor" className="text-accent" />
+            </svg>
           </span>
           <span className="leading-tight">
             <span className="block text-lg font-black tracking-tight text-white">Sportsphere</span>
@@ -218,7 +230,16 @@ export function HubHeader({
               <SheetHeader className="border-b border-border/50 pb-4">
                 <SheetTitle className="flex items-center gap-3 text-left text-white">
                   <span className="grid size-9 place-items-center rounded-xl border border-primary/30 bg-primary/10 text-primary">
-                    <Compass className="size-4" />
+                    <svg
+                      viewBox="0 0 48 48"
+                      className="size-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                    >
+                      <circle cx="24" cy="24" r="20" className="animate-spin" stroke="currentColor" strokeWidth="3" strokeDasharray="90 35" strokeLinecap="round" />
+                      <circle cx="24" cy="24" r="12" className="animate-spin-reverse" stroke="currentColor" strokeWidth="3" strokeDasharray="50 25" strokeLinecap="round" />
+                      <circle cx="24" cy="24" r="3" fill="currentColor" className="text-accent" />
+                    </svg>
                   </span>
                   Sportsphere Hub
                 </SheetTitle>
