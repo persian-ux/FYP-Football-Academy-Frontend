@@ -234,6 +234,15 @@ body {
   }
 }
 
+@keyframes spin-reverse {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
 .animate-blob {
   animation: blob 7s infinite;
 }
@@ -256,6 +265,10 @@ body {
 
 .animate-glow-pulse {
   animation: glowPulse 2.8s ease-in-out infinite;
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 3s linear infinite;
 }
 
 .link-underline {
