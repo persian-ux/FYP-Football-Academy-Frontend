@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { HubFooter, HubHeader, HeroSection, FeaturesGrid, LoginDialog, LiveUpdatesWidget, ProgramsSection, StatsSection, TestimonialsSection } from '@/components/hub/HubSections'
+import { HubFooter, HubHeader, HeroSection, FeaturesGrid, LiveUpdatesWidget, ProgramsSection, StatsSection, TestimonialsSection } from '@/components/hub/HubSections'
 import { useScrollSpy } from '@/hooks/useScrollSpy'
-import type { AuthSession, DemoCredentials } from '@/lib/auth'
+import type { AuthSession } from '@/lib/auth'
 
 type HubPageProps = {
   session: AuthSession | null
-  onSignIn: (credentials: DemoCredentials) => AuthSession
+  onSignIn: (credentials: any) => AuthSession
   onSignOut: () => void
 }
 
@@ -16,7 +16,6 @@ const sectionOrder = ['hero', 'features', 'programs', 'stats', 'updates', 'testi
 export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) {
   const navigate = useNavigate()
   const activeSection = useScrollSpy(sectionOrder)
-  const [loginOpen, setLoginOpen] = useState(false)
 
   useEffect(() => {
     console.log('Hub page loaded', { session })
@@ -38,14 +37,7 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
       return
     }
 
-    setLoginOpen(true)
-  }
-
-  const handleSignIn = (credentials: DemoCredentials) => {
-    const nextSession = onSignIn(credentials)
-    setLoginOpen(false)
-    navigate('/dashboard')
-    return nextSession
+    navigate('/login')
   }
 
   const handleSubscribe = (email: string) => {
@@ -63,7 +55,7 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
         onNavigateSection={scrollToSection}
         onJoinNow={handleProtectedAction}
         onExplorePrograms={() => scrollToSection('programs')}
-        onOpenLogin={() => setLoginOpen(true)}
+        onOpenLogin={() => navigate('/login')}
         onLogout={() => {
           onSignOut()
           navigate('/')
@@ -74,7 +66,7 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
         session={session}
         onExplorePrograms={() => scrollToSection('programs')}
         onJoinNow={handleProtectedAction}
-        onOpenLogin={() => setLoginOpen(true)}
+        onOpenLogin={() => navigate('/login')}
       />
       <FeaturesGrid />
       <ProgramsSection onJoinNow={handleProtectedAction} />
@@ -82,8 +74,6 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
       <LiveUpdatesWidget />
       <TestimonialsSection />
       <HubFooter onSubscribe={handleSubscribe} />
-
-      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} onSubmit={handleSignIn} />
     </main>
   )
 }
