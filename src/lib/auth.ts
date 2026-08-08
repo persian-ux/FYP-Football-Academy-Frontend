@@ -6,6 +6,9 @@ export type DemoCredentials = {
 export type AuthSession = {
   email: string
   displayName: string
+  is_staff?: boolean
+  is_superuser?: boolean
+  role?: string
 }
 
 export const demoCredentials: DemoCredentials = {
@@ -44,6 +47,9 @@ export function signInDemo(credentials: DemoCredentials) {
   const session: AuthSession = {
     email: demoCredentials.email,
     displayName: 'Sportsphere Admin',
+    is_staff: true,
+    is_superuser: true,
+    role: 'admin',
   }
 
   if (canUseStorage()) {

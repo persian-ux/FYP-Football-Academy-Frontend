@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner'
 
-import Dashboard from './pages/Dashboard.tsx'
+import Dashboard from './pages/Dashboard.jsx'
 import HubPage from './pages/HubPage.tsx'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -11,13 +11,19 @@ import Profile from './pages/Profile'
 import ChangePassword from './pages/ChangePassword'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import AdminUsers from './pages/AdminUsers'
+import SectionsList from './pages/Sections/SectionsList'
 import ProtectedRoute from './components/ProtectedRoute'
-import LoadingScreen from './components/LoadingScreen'
-import { restoreSession } from './redux/slices/authSlice'
+import AdminRoute from './components/AdminRoute'
+import AdminLayout from './components/layout/AdminLayout'
+import { restoreSession, setCredentials, clearTokensAndUser } from './redux/slices/authSlice'
 import { useDemoAuth } from './hooks/useDemoAuth.ts'
+import { getStoredSession } from './lib/auth'
+import { isAdminUser } from './lib/admin'
 
 function AppRoutes() {
-  const { isAuthenticated, loading, user } = useSelector((state) => state.auth)
+  const { isAuthenticated, user } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
   const auth = useDemoAuth()
 
   // If not yet bootstrapped from localStorage, show loading
@@ -44,10 +50,27 @@ function AppRoutes() {
                 ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
                 : auth.session
             }
-            onSignIn={auth.signIn}
+            onSignIn={(credentials) => {
+              const session = auth.signIn(credentials)
+              // Sync demo session into Redux so admin checks work
+              dispatch(
+                setCredentials({
+                  user: {
+                    email: session.email,
+                    first_name: session.displayName,
+                    is_staff: session.is_staff,
+                    is_superuser: session.is_superuser,
+                    role: session.role,
+                  },
+                  tokens: { access: 'demo-access-token', refresh: 'demo-refresh-token' },
+                })
+              )
+              return session
+            }}
             onSignOut={() => {
               localStorage.removeItem('auth_tokens')
               localStorage.removeItem('auth_user')
+              dispatch(clearTokensAndUser())
               auth.signOut()
               window.location.href = '/'
             }}
@@ -72,19 +95,37 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard
+            <AdminLayout
               session={
                 isAuthenticated
                   ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
                   : auth.session
               }
+              isAdmin={isAdminUser(user)}
               onLogout={() => {
                 localStorage.removeItem('auth_tokens')
                 localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
               }}
-            />
+            >
+              <Dashboard
+                session={
+                  isAuthenticated
+                    ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                    : auth.session
+                }
+                isAdmin={isAdminUser(user)}
+                onLogout={() => {
+                  localStorage.removeItem('auth_tokens')
+                  localStorage.removeItem('auth_user')
+                  dispatch(clearTokensAndUser())
+                  auth.signOut()
+                  window.location.href = '/'
+                }}
+              />
+            </AdminLayout>
           </ProtectedRoute>
         }
       />
@@ -101,6 +142,58 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ChangePassword />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin-only routes */}
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <AdminLayout
+              session={
+                isAuthenticated
+                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                  : auth.session
+              }
+              isAdmin={isAdminUser(user)}
+              onLogout={() => {
+                localStorage.removeItem('auth_tokens')
+                localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
+                auth.signOut()
+                window.location.href = '/'
+              }}
+            >
+              <AdminUsers />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+
+      {/* Sections — accessible to admins (full CRUD) and coaches (read-only) */}
+      <Route
+        path="/sections"
+        element={
+          <ProtectedRoute>
+            <AdminLayout
+              session={
+                isAuthenticated
+                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                  : auth.session
+              }
+              isAdmin={isAdminUser(user)}
+              onLogout={() => {
+                localStorage.removeItem('auth_tokens')
+                localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
+                auth.signOut()
+                window.location.href = '/'
+              }}
+            >
+              <SectionsList />
+            </AdminLayout>
           </ProtectedRoute>
         }
       />
@@ -131,6 +224,23 @@ function App() {
         // Ignore corrupted data
         localStorage.removeItem('auth_tokens')
         localStorage.removeItem('auth_user')
+      }
+    } else {
+      // If no Redux auth but a demo session exists, restore it into Redux
+      const demoSession = getStoredSession()
+      if (demoSession) {
+        dispatch(
+          setCredentials({
+            user: {
+              email: demoSession.email,
+              first_name: demoSession.displayName,
+              is_staff: demoSession.is_staff,
+              is_superuser: demoSession.is_superuser,
+              role: demoSession.role,
+            },
+            tokens: { access: 'demo-access-token', refresh: 'demo-refresh-token' },
+          })
+        )
       }
     }
   }, [dispatch])
