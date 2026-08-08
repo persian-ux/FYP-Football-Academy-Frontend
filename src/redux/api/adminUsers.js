@@ -67,11 +67,17 @@ export async function patchUser(id, payload) {
 
 /**
  * Delete a user.
+ * Backend returns HTTP 204 with an empty body, so we return a synthetic
+ * success envelope so the caller can rely on `response.success`.
  * @param {number|string} id - User ID
  */
 export async function deleteUser(id) {
-  const { data } = await axiosInstance.delete(`/api/v1/accounts/admin/users/${id}/`)
-  return data
+  const response = await axiosInstance.delete(`/api/v1/accounts/admin/users/${id}/`)
+  // 204 No Content → response.data is an empty string
+  if (response.status === 204 || !response.data) {
+    return { success: true, message: 'User deleted successfully.', data: {} }
+  }
+  return response.data
 }
 
 /**

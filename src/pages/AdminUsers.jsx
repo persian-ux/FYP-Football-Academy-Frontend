@@ -184,8 +184,9 @@ function UserForm({ initialData, onSubmit, onCancel, loading }) {
       payload.password = formData.password
       payload.password2 = formData.password2
     } else if (formData.password) {
+      // Only send password when a new one is provided.
+      // The backend update serializer has no `password2` field.
       payload.password = formData.password
-      payload.password2 = formData.password2
     }
 
     onSubmit(payload)
