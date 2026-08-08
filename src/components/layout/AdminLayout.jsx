@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Users,
+  Layers,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -16,6 +17,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'User Management', href: '/admin/users', icon: Users },
+  { label: 'Sections', href: '/sections', icon: Layers },
 ]
 
 /**

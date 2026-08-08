@@ -12,6 +12,7 @@ import ChangePassword from './pages/ChangePassword'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import AdminUsers from './pages/AdminUsers'
+import SectionsList from './pages/Sections/SectionsList'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminLayout from './components/layout/AdminLayout'
@@ -168,6 +169,32 @@ function AppRoutes() {
               <AdminUsers />
             </AdminLayout>
           </AdminRoute>
+        }
+      />
+
+      {/* Sections — accessible to admins (full CRUD) and coaches (read-only) */}
+      <Route
+        path="/sections"
+        element={
+          <ProtectedRoute>
+            <AdminLayout
+              session={
+                isAuthenticated
+                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                  : auth.session
+              }
+              isAdmin={isAdminUser(user)}
+              onLogout={() => {
+                localStorage.removeItem('auth_tokens')
+                localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
+                auth.signOut()
+                window.location.href = '/'
+              }}
+            >
+              <SectionsList />
+            </AdminLayout>
+          </ProtectedRoute>
         }
       />
 
