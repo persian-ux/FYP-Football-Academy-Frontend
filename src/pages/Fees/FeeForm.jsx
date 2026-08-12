@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { format } from 'date-fns'
+import { CalendarDays, Loader2, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +13,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DialogFooter } from '@/components/ui/dialog'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 const STATUS_OPTIONS = [
   { value: 'paid', label: 'Paid' },
@@ -19,6 +26,32 @@ const STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
   { value: 'overdue', label: 'Overdue' },
 ]
+
+/**
+ * Parse a 'YYYY-MM-DD' string into a local Date (avoids the UTC midnight
+ * off-by-one shift from `new Date('YYYY-MM-DD')`).
+ * @param {string} value
+ * @returns {Date | undefined}
+ */
+function parseDateString(value) {
+  if (!value) return undefined
+  const [y, m, d] = String(value).split('-').map(Number)
+  if (!y || !m || !d) return undefined
+  return new Date(y, m - 1, d)
+}
+
+/**
+ * Format a Date as a 'YYYY-MM-DD' string to match the fee API contract.
+ * @param {Date} date
+ * @returns {string}
+ */
+function toDateString(date) {
+  if (!date) return ''
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 
 /**
  * Validate an amount string: positive number with up to 2 decimal places.
@@ -47,6 +80,7 @@ function isValidAmount(value) {
  */
 export default function FeeForm({ initialData = null, students = [], onSubmit, onCancel, loading = false }) {
   const isEditing = !!initialData?.fee_id
+  const [dueDateOpen, setDueDateOpen] = useState(false)
 
   const [formData, setFormData] = useState({
     player: initialData?.player_id ? String(initialData.player_id) : '',
@@ -186,14 +220,81 @@ export default function FeeForm({ initialData = null, students = [], onSubmit, o
       {/* Due date */}
       <div className="space-y-2">
         <Label htmlFor="due_date" className="text-gray-300">Due Date</Label>
-        <Input
-          id="due_date"
-          name="due_date"
-          type="date"
-          value={formData.due_date}
-          onChange={handleChange}
-          className="bg-white/5 border-border/50 text-white h-10 [color-scheme:dark]"
-        />
+        <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              id="due_date"
+              className="h-10 w-full justify-start gap-2 border-border/50 bg-white/5 font-normal text-white hover:bg-white/10 hover:text-white"
+            >
+              <CalendarDays className="h-4 w-4 shrink-0 text-gray-500" />
+              {formData.due_date ? (
+                <span className="text-white">{format(parseDateString(formData.due_date), 'MMM d, yyyy')}</span>
+              ) : (
+                <span className="text-gray-500">Select a date</span>
+              )}
+              {formData.due_date && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  title="Clear date"
+                  className="ml-auto flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleChange({ target: { name: 'due_date', value: '' } })
+                    setDueDateOpen(false)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation()
+                      handleChange({ target: { name: 'due_date', value: '' } })
+                      setDueDateOpen(false)
+                    }
+                  }}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-auto border-border/50 bg-popover p-0">
+            <Calendar
+              mode="single"
+              captionLayout="dropdown"
+              startMonth={new Date(2000, 0, 1)}
+              endMonth={new Date(2050, 11, 31)}
+              selected={parseDateString(formData.due_date)}
+              onSelect={(date) => {
+                handleChange({ target: { name: 'due_date', value: toDateString(date) } })
+                setDueDateOpen(false)
+              }}
+            />
+            <div className="flex items-center justify-between gap-2 border-t border-border/40 p-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:bg-white/10 hover:text-white"
+                onClick={() => {
+                  handleChange({ target: { name: 'due_date', value: '' } })
+                  setDueDateOpen(false)
+                }}
+              >
+                Clear
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:bg-white/10 hover:text-white"
+                onClick={() => setDueDateOpen(false)}
+              >
+                Close
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <DialogFooter className="pt-2">
