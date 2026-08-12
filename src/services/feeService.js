@@ -1,6 +1,39 @@
 import axiosInstance from '@/redux/api/axios'
+import { listPlayers } from '@/redux/api/adminUsers'
 
 const FEES_BASE = '/api/v1/fees'
+
+/**
+ * Fetch every player-role user (all students) from the admin endpoint,
+ * walking through every page. Used as a fallback / merge source so the
+ * fees dashboard always lists every student, even player-role users that
+ * were created through User Management and may not have a Player profile yet.
+ * @param {Object} params - optional query params passed to the players list
+ * @returns {Promise<Array>} Array of player user objects
+ */
+export async function listAllStudents(params = {}) {
+  const all = []
+  let page = params.page || 1
+  try {
+    for (;;) {
+      const response = await listPlayers({ ...params, page })
+      if (!response?.success) break
+      const data = response.data
+      const results = Array.isArray(data?.results)
+        ? data.results
+        : Array.isArray(data)
+          ? data
+          : []
+      all.push(...results)
+      const total = data?.count ?? results.length
+      if (results.length === 0 || all.length >= total) break
+      page += 1
+    }
+  } catch {
+    // Ignore — the caller handles whatever we managed to collect.
+  }
+  return all
+}
 
 /**
  * Get all students with their fee status.

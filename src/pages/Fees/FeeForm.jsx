@@ -57,8 +57,9 @@ export default function FeeForm({ initialData = null, students = [], onSubmit, o
   const [fieldErrors, setFieldErrors] = useState({})
 
   // Students without a fee can have a new fee created for them.
+  // Rows without a player_id have no Player profile yet, so exclude them.
   const createOptions = useMemo(
-    () => students.filter((student) => !student.fee_id),
+    () => students.filter((student) => !student.fee_id && student.player_id),
     [students]
   )
 

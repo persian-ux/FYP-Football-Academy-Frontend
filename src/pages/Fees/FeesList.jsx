@@ -64,6 +64,7 @@ import FeeForm from './FeeForm'
 import FeeStatusBadge from './FeeStatusBadge'
 import {
   getStudentsWithFeeStatus,
+  listAllStudents,
   createFeeRecord,
   updateFeeRecord,
   deleteFeeRecord,
@@ -158,19 +159,49 @@ export default function FeesList() {
   const fetchStudents = useCallback(async () => {
     setLoading(true)
     setError('')
+    let feeRows = []
+    let primaryError = ''
+
     try {
       const response = await getStudentsWithFeeStatus()
-      if (response.success) {
-        const list = response.data?.results || response.data
-        setStudents(Array.isArray(list) ? list : [])
-      } else {
-        setError(response.message || 'Failed to load students')
+      const list = response.data?.results || response.data
+      feeRows = Array.isArray(list) ? list : []
+      if (!response.success) {
+        primaryError = response.message || 'Failed to load students'
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load students')
-    } finally {
-      setLoading(false)
+      primaryError = err.response?.data?.message || 'Failed to load students'
     }
+
+    // Merge every player-role user so the list always shows all students,
+    // including those created through User Management that may not have a
+    // Player profile / fee row yet. Rows from the fees endpoint take priority.
+    const adminPlayers = await listAllStudents()
+    const byUser = new Map(feeRows.map((row) => [row.user_id, row]))
+    adminPlayers.forEach((user) => {
+      if (byUser.has(user.id)) return
+      byUser.set(user.id, {
+        id: user.id,
+        player_id: user.player_id ?? null,
+        user_id: user.id,
+        student_name:
+          [user.first_name, user.last_name].filter(Boolean).join(' ') ||
+          user.email ||
+          `Student #${user.id}`,
+        email: user.email || '',
+        phone: user.phone || null,
+        academy_group: null,
+        assigned_sport: null,
+        amount: '0.00',
+        status: 'unpaid',
+        fee_id: null,
+        due_date: null,
+      })
+    })
+
+    setStudents(Array.from(byUser.values()))
+    setError(primaryError)
+    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -583,13 +614,23 @@ export default function FeesList() {
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </>
-                                ) : (
+                                ) : row.player_id ? (
                                   <Button
                                     variant="ghost"
                                     size="icon-sm"
                                     className="text-blue-400 hover:text-blue-300"
                                     title="Add fee for this student"
                                     onClick={() => openCreateForRow(row)}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    disabled
+                                    title="No player profile — cannot assign a fee"
+                                    className="text-gray-600"
                                   >
                                     <Plus className="h-4 w-4" />
                                   </Button>
