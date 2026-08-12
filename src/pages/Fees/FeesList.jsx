@@ -40,6 +40,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   Wallet,
   Search,
   Plus,
@@ -49,6 +56,7 @@ import {
   ArrowLeft,
   Users,
   Mail,
+  MoreHorizontal,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -572,70 +580,65 @@ export default function FeesList() {
                               </span>
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                {row.fee_id ? (
-                                  <>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon-sm"
-                                      className="text-gray-400 hover:text-blue-400"
-                                      title="Edit fee"
-                                      onClick={() => openEdit(row)}
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon-sm"
-                                      className={
-                                        row.status === 'paid'
-                                          ? 'text-gray-400 hover:text-red-400'
-                                          : 'text-gray-400 hover:text-emerald-400'
-                                      }
-                                      title={row.status === 'paid' ? 'Mark as unpaid' : 'Mark as paid'}
-                                      disabled={toggleId === row.fee_id}
-                                      onClick={() => handleToggle(row)}
-                                    >
-                                      {toggleId === row.fee_id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                      ) : row.status === 'paid' ? (
-                                        <XCircle className="h-4 w-4" />
-                                      ) : (
-                                        <CheckCircle2 className="h-4 w-4" />
-                                      )}
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon-sm"
-                                      className="text-gray-400 hover:text-red-400"
-                                      title="Delete fee"
-                                      onClick={() => openDelete(row)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </>
-                                ) : row.player_id ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
                                   <Button
                                     variant="ghost"
                                     size="icon-sm"
-                                    className="text-blue-400 hover:text-blue-300"
-                                    title="Add fee for this student"
-                                    onClick={() => openCreateForRow(row)}
+                                    className="text-gray-400 hover:text-white"
+                                    disabled={!row.fee_id && !row.player_id}
+                                    title="Actions"
                                   >
-                                    <Plus className="h-4 w-4" />
+                                    <MoreHorizontal className="h-4 w-4" />
                                   </Button>
-                                ) : (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    disabled
-                                    title="No player profile — cannot assign a fee"
-                                    className="text-gray-600"
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="border-border/50 bg-popover"
+                                >
+                                  {row.fee_id ? (
+                                    <>
+                                      <DropdownMenuItem
+                                        onClick={() => openEdit(row)}
+                                        className="text-gray-300 focus:bg-white/10 focus:text-white"
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                        Edit Fee
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => handleToggle(row)}
+                                        disabled={toggleId === row.fee_id}
+                                        className="text-gray-300 focus:bg-white/10 focus:text-white"
+                                      >
+                                        {toggleId === row.fee_id ? (
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : row.status === 'paid' ? (
+                                          <XCircle className="h-4 w-4" />
+                                        ) : (
+                                          <CheckCircle2 className="h-4 w-4" />
+                                        )}
+                                        {row.status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        onClick={() => openDelete(row)}
+                                        variant="destructive"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                        Delete Fee
+                                      </DropdownMenuItem>
+                                    </>
+                                  ) : (
+                                    <DropdownMenuItem
+                                      onClick={() => openCreateForRow(row)}
+                                      className="text-gray-300 focus:bg-white/10 focus:text-white"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                      Add Fee
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </TableCell>
                           </TableRow>
                         ))}
