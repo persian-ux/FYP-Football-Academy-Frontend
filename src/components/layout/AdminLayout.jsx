@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Users,
   Layers,
+  Wallet,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -17,6 +18,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'User Management', href: '/admin/users', icon: Users },
+  { label: 'Fee Management', href: '/admin/fees', icon: Wallet },
   { label: 'Sections', href: '/sections', icon: Layers },
 ]
 
