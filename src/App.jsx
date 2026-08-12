@@ -12,6 +12,7 @@ import ChangePassword from './pages/ChangePassword'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import AdminUsers from './pages/AdminUsers'
+import FeesList from './pages/Fees/FeesList'
 import SectionsList from './pages/Sections/SectionsList'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
@@ -167,6 +168,32 @@ function AppRoutes() {
               }}
             >
               <AdminUsers />
+            </AdminLayout>
+          </AdminRoute>
+        }
+      />
+
+      {/* Fee management — admin CRUD on student fees */}
+      <Route
+        path="/admin/fees"
+        element={
+          <AdminRoute>
+            <AdminLayout
+              session={
+                isAuthenticated
+                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                  : auth.session
+              }
+              isAdmin={isAdminUser(user)}
+              onLogout={() => {
+                localStorage.removeItem('auth_tokens')
+                localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
+                auth.signOut()
+                window.location.href = '/'
+              }}
+            >
+              <FeesList />
             </AdminLayout>
           </AdminRoute>
         }
