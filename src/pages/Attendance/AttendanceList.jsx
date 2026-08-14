@@ -60,6 +60,7 @@ import AttendanceStatusBadge, { ATTENDANCE_STATUS_OPTIONS } from './AttendanceSt
 import {
   listAttendanceRecords,
   getAttendanceRoster,
+  listAllAttendanceMembers,
   bulkMarkAttendance,
   deleteAttendanceRecord,
   toggleAttendance,
@@ -180,24 +181,44 @@ export default function AttendanceList({ isAdmin = false }) {
       if (!isAdmin) return
       setRosterLoading(true)
       setRosterError('')
+      let primaryError = ''
+      let endpointRoster = []
+
+      // Try the dedicated roster endpoint first (it includes saved statuses for the date).
       try {
         const response = await getAttendanceRoster(date)
-        if (response.success) {
-          const list = response.data?.roster || []
-          setRoster(list)
-          const map = {}
-          list.forEach((item) => {
-            map[item.user_id] = item.status || 'absent'
-          })
-          setStatusMap(map)
+        if (response?.success) {
+          endpointRoster = response.data?.roster || []
         } else {
-          setRosterError(response.message || 'Failed to load attendance roster')
+          primaryError = response?.message || 'Failed to load attendance roster'
         }
       } catch (err) {
-        setRosterError(err.response?.data?.message || 'Failed to load attendance roster')
-      } finally {
-        setRosterLoading(false)
+        primaryError = err.response?.data?.message || 'Failed to load attendance roster'
       }
+
+      // Merge in every player/coach user so the roster always shows all members,
+      // including those created through User Management. Endpoint rows (which
+      // carry the saved status for the selected date) take priority.
+      const fallbackMembers = await listAllAttendanceMembers()
+      const byUser = new Map(endpointRoster.map((item) => [item.user_id, item]))
+      fallbackMembers.forEach((member) => {
+        if (byUser.has(member.user_id)) return
+        byUser.set(member.user_id, member)
+      })
+
+      const list = Array.from(byUser.values())
+      setRoster(list)
+      const map = {}
+      list.forEach((item) => {
+        map[item.user_id] = item.status || 'absent'
+      })
+      setStatusMap(map)
+
+      // Only surface an error if we could not load any members at all.
+      if (list.length === 0 && primaryError) {
+        setRosterError(primaryError)
+      }
+      setRosterLoading(false)
     },
     [isAdmin]
   )

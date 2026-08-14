@@ -1,6 +1,58 @@
 import axiosInstance from '@/redux/api/axios'
+import { listPlayers, listCoaches } from '@/redux/api/adminUsers'
 
 const ATTENDANCE_BASE = '/api/v1/attendance'
+
+/**
+ * Walk through every page of a paginated admin endpoint and collect all results.
+ * @param {(params:Object)=>Promise} fetcher - listPlayers / listCoaches from adminUsers
+ * @param {Object} params - initial query params
+ * @returns {Promise<Array>} Flat array of all user objects
+ */
+async function listAllPages(fetcher, params = {}) {
+  const all = []
+  let page = params.page || 1
+  try {
+    for (;;) {
+      const response = await fetcher({ ...params, page })
+      if (!response?.success) break
+      const data = response.data
+      const results = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : []
+      all.push(...results)
+      const total = data?.count ?? results.length
+      if (results.length === 0 || all.length >= total) break
+      page += 1
+    }
+  } catch {
+    // Ignore — the caller handles whatever we managed to collect.
+  }
+  return all
+}
+
+/**
+ * Fetch every player and coach user (all attendance-eligible members), walking
+ * through every page. Used as a merge / fallback source so the attendance
+ * roster always lists every member, even users created through User Management
+ * that may not have a Player profile yet.
+ * @returns {Promise<Array>} Array of roster-shaped items: { user_id, name, email, role, status, attendance_id }
+ */
+export async function listAllAttendanceMembers() {
+  const [players, coaches] = await Promise.all([
+    listAllPages(listPlayers, { is_active: 'true' }),
+    listAllPages(listCoaches, { is_active: 'true' }),
+  ])
+  return [...players, ...coaches].map((user) => ({
+    user_id: user.id,
+    name:
+      [user.first_name, user.last_name].filter(Boolean).join(' ') ||
+      user.email ||
+      `Member #${user.id}`,
+    email: user.email || '',
+    role: user.role || '',
+    status: 'absent',
+    attendance_id: null,
+  }))
+}
 
 /**
  * List attendance records (paginated). Accessible to admins and coaches (read-only).
