@@ -14,6 +14,7 @@ import ResetPassword from './pages/ResetPassword'
 import AdminUsers from './pages/AdminUsers'
 import FeesList from './pages/Fees/FeesList'
 import SectionsList from './pages/Sections/SectionsList'
+import AttendanceList from './pages/Attendance/AttendanceList'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminLayout from './components/layout/AdminLayout'
@@ -220,6 +221,32 @@ function AppRoutes() {
               }}
             >
               <SectionsList />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Attendance — admins (full management) and coaches (record history read-only) */}
+      <Route
+        path="/attendance"
+        element={
+          <ProtectedRoute>
+            <AdminLayout
+              session={
+                isAuthenticated
+                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                  : auth.session
+              }
+              isAdmin={isAdminUser(user)}
+              onLogout={() => {
+                localStorage.removeItem('auth_tokens')
+                localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
+                auth.signOut()
+                window.location.href = '/'
+              }}
+            >
+              <AttendanceList isAdmin={isAdminUser(user)} />
             </AdminLayout>
           </ProtectedRoute>
         }
