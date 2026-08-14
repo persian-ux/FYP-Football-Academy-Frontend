@@ -8,6 +8,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ClipboardCheck,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -19,6 +20,7 @@ const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'User Management', href: '/admin/users', icon: Users },
   { label: 'Fee Management', href: '/admin/fees', icon: Wallet },
+  { label: 'Attendance', href: '/attendance', icon: ClipboardCheck },
   { label: 'Sections', href: '/sections', icon: Layers },
 ]
 
