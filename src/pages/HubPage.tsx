@@ -2,12 +2,14 @@ import { lazy, Suspense, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { HubFooter, HubHeader, HeroSection, FeaturesGrid, LiveUpdatesWidget, ProgramsSection, StatsSection, TestimonialsSection } from '@/components/hub/HubSections'
+import ScrollProgressHUD from '@/components/hud/ScrollProgressHUD'
+import SceneErrorBoundary from '@/components/common/SceneErrorBoundary'
 import { useScrollSpy } from '@/hooks/useScrollSpy'
 import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import type { AuthSession } from '@/lib/auth'
-import { gsap } from '@/lib/sportsphere'
+import { gsap, PREFERS_REDUCED_MOTION } from '@/lib/sportsphere'
 
-const SportSphere3DScene = lazy(() => import('@/components/hub/SportSphere3DScene'))
+const FootballBackground = lazy(() => import('@/components/3D/FootballBackground'))
 const SportSphereParticleCanvas = lazy(() => import('@/components/hub/SportSphereParticleCanvas'))
 
 type HubPageProps = {
@@ -67,11 +69,15 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
 
   return (
     <main ref={mainRef} className="relative min-h-screen overflow-hidden bg-[#0f1419] text-white">
-      {/* Full-screen 3D + cinematic background layers */}
-      <Suspense fallback={null}>
-        <SportSphere3DScene />
-        <SportSphereParticleCanvas />
-      </Suspense>
+      {/* Fixed background: scroll-driven 3D football match + 2D particle layer.
+          Isolated in an error boundary so a WebGL/timing failure can never
+          unmount the page — it degrades to the static CSS gradient. */}
+      <SceneErrorBoundary>
+        <Suspense fallback={null}>
+          <FootballBackground />
+          <SportSphereParticleCanvas />
+        </Suspense>
+      </SceneErrorBoundary>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent" />
 
       <HubHeader
@@ -94,6 +100,9 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
       <LiveUpdatesWidget />
       <TestimonialsSection />
       <HubFooter onSubscribe={handleSubscribe} />
+
+      {/* Broadcast-style match HUD bound to scroll */}
+      {!PREFERS_REDUCED_MOTION && <ScrollProgressHUD />}
     </main>
   )
 }

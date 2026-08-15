@@ -319,7 +319,7 @@
 }
 .ss-title-word {
   display: inline-block;
-  opacity: 0;
+  opacity: 1; /* visible by default — GSAP hides + flips it in on load */
   transform-style: preserve-3d;
   will-change: transform, opacity;
 }
