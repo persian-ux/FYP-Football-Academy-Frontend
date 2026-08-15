@@ -1,0 +1,713 @@
+/* ============================================================
+   SportSphere cinematic + 3D layers (Layers 1-7 z-axis stacking)
+   ============================================================ */
+
+/* Layer 1 - Three.js WebGL canvas (full-screen, fixed) */
+.ss-3d-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ss-webgl-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Layer 2 - 2D particle overlay canvas */
+.ss-2d-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+}
+
+/* Intro loading veil (Phase 1: black screen) */
+.ss-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(90% 80% at 50% 20%, rgba(26, 10, 46, 0.9), rgba(5, 6, 15, 1) 60%),
+    #05060f;
+  animation: ssIntroAutoDismiss 6s ease forwards;
+}
+.ss-intro-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.ss-intro-ball {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #00d4ff, #ff6b35, #ffd700, #39ff14, #00d4ff);
+  animation: ssIntroSpin 0.9s linear infinite;
+  box-shadow: 0 0 34px rgba(0, 212, 255, 0.45);
+}
+.ss-intro-text {
+  font-family: 'Orbitron', 'Geist Variable', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.55em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+  animation: ssFadePulse 1.2s ease-in-out infinite;
+}
+.ss-intro-overlay.hide {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Celebration screen flash */
+.ss-flash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  pointer-events: none;
+  background: #ffffff;
+  opacity: 0;
+}
+
+/* Layer 3 - CSS 3D football field with perspective tilt */
+.ss-field-stage {
+  position: absolute;
+  left: 50%;
+  bottom: -7%;
+  width: min(1500px, 150vw);
+  height: 380px;
+  transform: translateX(-50%);
+  perspective: 950px;
+  pointer-events: none;
+  z-index: 1;
+}
+.ss-field-materialize {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+}
+.ss-field-3d {
+  position: absolute;
+  inset: 0;
+  transform: perspective(1000px) rotateX(63deg) scale(0.86);
+  transform-origin: 50% 100%;
+  border-radius: 4px 4px 42% 42% / 2px 2px 7% 7%;
+  border: 2px solid rgba(57, 255, 20, 0.28);
+  background:
+    radial-gradient(130% 60% at 50% 120%, rgba(57, 255, 20, 0.16), transparent 55%),
+    linear-gradient(180deg, #0b3d21 0%, #072714 42%, #041d0d 100%);
+  box-shadow:
+    0 -12px 70px rgba(57, 255, 20, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 0 90px rgba(0, 0, 0, 0.55);
+}
+.ss-field-3d::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 8.33%);
+  transform-origin: left center;
+  animation: ssFieldDrawStripes 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ss-field-3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.24) 49.8% 50.2%, transparent 50.2%),
+    linear-gradient(90deg, transparent 10%, rgba(255, 255, 255, 0.2) 10% 10.25%, transparent 10.25%),
+    linear-gradient(90deg, transparent 90%, rgba(255, 255, 255, 0.2) 90% 90.25%, transparent 90.25%),
+    linear-gradient(180deg, transparent 20%, rgba(255, 255, 255, 0.16) 20% 20.2%, transparent 20.2%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: ssFieldDrawLines 1.3s 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Layer 4 - stadium light beams + conic spinning lamps */
+.ss-beams {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.ss-beam {
+  position: absolute;
+  top: -18%;
+  width: 13vw;
+  height: 150%;
+  transform-origin: 50% 100%;
+  opacity: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 212, 255, 0.16),
+    rgba(255, 255, 255, 0.06) 48%,
+    transparent 78%
+  );
+  clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%);
+  filter: blur(2px);
+}
+.ss-beam-alt {
+  background: linear-gradient(to top, rgba(255, 107, 53, 0.16), rgba(255, 255, 255, 0.05) 50%, transparent 80%);
+}
+.ss-beam-center {
+  background: linear-gradient(to top, rgba(57, 255, 20, 0.15), rgba(255, 255, 255, 0.07) 52%, transparent 82%);
+}
+.ss-beam-conic {
+  position: absolute;
+  left: 50%;
+  top: -50%;
+  width: 190vmax;
+  height: 190vmax;
+  transform: translateX(-50%);
+  opacity: 0;
+  background: conic-gradient(
+    from 10deg,
+    transparent 0deg,
+    rgba(0, 212, 255, 0.08) 26deg,
+    transparent 52deg,
+    rgba(255, 215, 0, 0.06) 96deg,
+    transparent 138deg,
+    rgba(57, 255, 20, 0.07) 186deg,
+    transparent 226deg,
+    rgba(102, 126, 234, 0.07) 280deg,
+    transparent 330deg,
+    rgba(0, 212, 255, 0.06) 360deg
+  );
+  mask-image: radial-gradient(closest-side, black, transparent 72%);
+  -webkit-mask-image: radial-gradient(closest-side, black, transparent 72%);
+  animation: ssSpin 70s linear infinite;
+}
+
+/* Layer 5 - scanline cinema overlay + bokeh orbs */
+.ss-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.05;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.5) 0 1px,
+    transparent 1px 4px
+  );
+  mix-blend-mode: overlay;
+}
+.ss-bokeh-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(2px);
+  will-change: transform;
+}
+.ss-glow-dot {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.9), rgba(0, 212, 255, 0) 65%);
+  animation: ssGlowDotPulse 3.4s ease-in-out infinite;
+}
+
+/* ============ shared keyframes ============ */
+@keyframes ssIntroSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ssIntroAutoDismiss {
+  0%,
+  60% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes ssFadePulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes ssSpin {
+  to {
+    transform: translateX(-50%) rotate(360deg);
+  }
+}
+@keyframes ssFieldDrawStripes {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+@keyframes ssFieldDrawLines {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes ssGlowDotPulse {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.35);
+  }
+}
+
+/* ============ HERO layout ============ */
+.ss-hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  z-index: 10;
+}
+.ss-hero-inner {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  min-height: 100vh;
+  min-height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 96px 16px 72px;
+  text-align: center;
+  will-change: transform;
+}
+
+/* 3D extruded neon title */
+.ss-title-3d {
+  font-family: 'Orbitron', 'Geist Variable', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  line-height: 1.04;
+  color: #ffffff;
+  text-shadow:
+    0 0 6px rgba(0, 212, 255, 0.65),
+    0 0 22px rgba(0, 212, 255, 0.42),
+    1px 1px 0 #072a5c,
+    2px 2px 0 #052349,
+    3px 3px 0 #041c3c,
+    4px 4px 0 #031630,
+    5px 5px 0 #021024,
+    6px 6px 0 #010a19,
+    7px 7px 0 #010610,
+    8px 8px 14px rgba(0, 0, 0, 0.7);
+  animation: ssNeonPulse 3.4s ease-in-out infinite;
+}
+.ss-title-word {
+  display: inline-block;
+  opacity: 1; /* visible by default — GSAP hides + flips it in on load */
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+.ss-title-word-accent {
+  background: linear-gradient(180deg, #fff 0%, #9fdcff 45%, #00d4ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+}
+
+/* Typewriter */
+.ss-type-line {
+  min-height: 1.8em;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.82);
+}
+.ss-type-caret {
+  display: inline-block;
+  width: 2px;
+  margin-left: 2px;
+  height: 1.1em;
+  vertical-align: -0.18em;
+  background: #00d4ff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+  animation: ssCaretBlink 0.85s step-end infinite;
+}
+@keyframes ssCaretBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Stats counters */
+.ss-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  width: min(720px, 100%);
+}
+.ss-stat-value {
+  font-family: 'Orbitron', 'Geist Variable', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.1;
+  background: linear-gradient(120deg, #ffffff 0%, #7ae2ff 42%, #ffd700 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ss-stat-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* CTA 3D press buttons */
+.ss-cta-3d {
+  position: relative;
+  box-shadow:
+    0 5px 0 #075fa3,
+    0 12px 26px rgba(0, 153, 255, 0.28);
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease;
+}
+.ss-cta-3d:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 7px 0 #075fa3,
+    0 16px 30px rgba(0, 153, 255, 0.4);
+}
+.ss-cta-3d:active {
+  transform: translateY(4px);
+  box-shadow:
+    0 1px 0 #075fa3,
+    0 4px 10px rgba(0, 153, 255, 0.2);
+}
+.ss-cta-ghost {
+  position: relative;
+  box-shadow:
+    0 5px 0 rgba(255, 255, 255, 0.12),
+    0 12px 26px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease;
+}
+.ss-cta-ghost:hover {
+  transform: translateY(-2px);
+}
+.ss-cta-ghost:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Glass morphism cards */
+.ss-glass-card {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 1.1rem;
+  padding: 12px 16px;
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 40px rgba(0, 0, 0, 0.26);
+  will-change: transform, opacity;
+}
+.ss-glass-card:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+}
+
+/* Scroll indicator */
+.ss-scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  translate: -50% 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.62rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  animation: ssBounceY 1.9s ease-in-out infinite;
+}
+.ss-scroll-hint svg {
+  animation: ssBounceY 1.9s ease-in-out infinite;
+}
+@keyframes ssBounceY {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(9px);
+    opacity: 0.45;
+  }
+}
+
+/* ============ Floating sports balls ============ */
+.ss-float-y {
+  animation: ssFloatY 5.4s ease-in-out infinite;
+  will-change: transform;
+}
+.ss-float-y-fast {
+  animation: ssFloatY 3.2s ease-in-out infinite;
+  will-change: transform;
+}
+.ss-float-y-slow {
+  animation: ssFloatY 7s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes ssFloatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-18px);
+  }
+}
+.ss-spin-x {
+  animation: ssSpinX 7s linear infinite;
+}
+.ss-spin-y {
+  animation: ssSpinY 4.6s linear infinite;
+}
+.ss-spin-z {
+  animation: ssSpinZ 6.2s linear infinite;
+}
+.ss-spin-y-fast {
+  animation: ssSpinY 2.6s linear infinite;
+}
+.ss-spin-x-slow {
+  animation: ssSpinX 12s linear infinite;
+}
+@keyframes ssSpinX {
+  to {
+    transform: rotateX(360deg);
+  }
+}
+@keyframes ssSpinY {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+@keyframes ssSpinZ {
+  to {
+    transform: rotateZ(360deg);
+  }
+}
+
+/* Soccer ball pattern */
+.ss-soccer {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 28% 32%, #ffffff, #f4f4f4 48%, #dae0e6 100%);
+  box-shadow:
+    inset -10px -8px 20px rgba(0, 0, 0, 0.3),
+    inset 6px 8px 18px rgba(255, 255, 255, 0.7),
+    0 0 40px rgba(0, 212, 255, 0.2);
+}
+.ss-soccer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(10, 10, 14, 0.95) 0 10%, transparent 11%),
+    radial-gradient(circle at 18% 34%, rgba(10, 10, 14, 0.95) 0 8.5%, transparent 9.2%),
+    radial-gradient(circle at 82% 32%, rgba(10, 10, 14, 0.95) 0 8.5%, transparent 9.2%),
+    radial-gradient(circle at 32% 82%, rgba(10, 10, 14, 0.95) 0 8.5%, transparent 9.2%),
+    radial-gradient(circle at 68% 80%, rgba(10, 10, 14, 0.95) 0 7.5%, transparent 8.2%);
+}
+/* Basketball pattern */
+.ss-basketball {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 28%, #ffdba5, #ff8c2e 40%, #d95b12 65%, #a63e05 100%);
+  box-shadow:
+    inset -8px -8px 18px rgba(120, 30, 0, 0.4),
+    inset 5px 6px 14px rgba(255, 255, 255, 0.5);
+}
+.ss-basketball::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 48%, transparent 56%, rgba(80, 20, 0, 0.85) 57% 58.5%, transparent 59.5%),
+    linear-gradient(95deg, transparent 46%, rgba(60, 20, 0, 0.85) 47% 48.5%, transparent 49%),
+    linear-gradient(172deg, transparent 46%, rgba(60, 20, 0, 0.85) 47% 48.5%, transparent 49%);
+}
+
+/* Trophy CSS */
+.ss-trophy-wrap {
+  width: 70px;
+  height: 100px;
+}
+.ss-trophy-cup {
+  position: absolute;
+  left: 50%; top: 0;
+  width: 52px; height: 44px;
+  transform: translateX(-50%);
+  border-radius: 50% 50% 10% 10% / 60% 60% 10% 10%;
+  background: linear-gradient(180deg, #fff6c0, #ffd700 24%, #d99a06 55%, #8a5a00 100%);
+  box-shadow:
+    0 0 20px rgba(255, 215, 0, 0.5),
+    inset 0 -8px 14px rgba(120, 70, 0, 0.45),
+    inset 0 6px 10px rgba(255, 255, 255, 0.55);
+}
+.ss-trophy-handle {
+  position: absolute;
+  top: 8px;
+  width: 16px;
+  height: 28px;
+  border: 5px solid #ffd700;
+  border-radius: 50%;
+  border-right: none;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.4));
+}
+.ss-trophy-handle--l {
+  left: -6px;
+}
+.ss-trophy-handle--r {
+  right: -6px;
+  transform: scaleX(-1);
+}
+.ss-trophy-stem {
+  position: absolute;
+  top: 42px;
+  left: 50%;
+  width: 8px;
+  height: 28px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #8a5a00, #ffd700 50%, #8a5a00);
+}
+.ss-trophy-base {
+  position: absolute;
+  top: 68px;
+  left: 50%;
+  width: 42px;
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: linear-gradient(180deg, #ffd700, #b37400);
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.5);
+}
+.ss-trophy-spark {
+  font-size: 0;
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow:
+    0 -16px 0 0 #fff,
+    22px -10px 0 0 #fff,
+    -24px -6px 0 0 #fff,
+    20px -24px 0 0 #fff,
+    -18px -22px 0 0 rgba(255, 215, 0, 0.9);
+  animation: ssTwinkle 1.8s ease-in-out infinite;
+}
+@keyframes ssTwinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* Stadium SVG silhouette */
+.ss-stadium-svg {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  animation: ssTilt 16s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.12));
+}
+@keyframes ssTilt {
+  0%, 100% { transform: perspective(900px) rotateY(-2deg); }
+  25% { transform: perspective(900px) rotateY(3deg); }
+  75% { transform: perspective(900px) rotateY(-3deg); }
+}
+
+/* Reveal animation helpers */
+.ss-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+.ss-reveal[data-reveal="card-flip"] {
+  opacity: 0;
+  transform: perspective(1000px) rotateX(78deg) translateY(34px);
+  transform-origin: 50% 0%;
+}
+.ss-reveal.ss-in {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes ssNeonPulse {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 16px rgba(0, 212, 255, 0.35)); }
+}
+
+/* ============ Responsive ============ */
+@media (max-width: 767px) {
+  .ss-hero-inner { padding: 80px 12px 64px; }
+  .ss-title-3d { font-size: 2.6rem !important; letter-spacing: 0.04em; }
+  .ss-field-stage { display: none; }
+  .ss-beam { width: 22vw; }
+  .ss-beam-conic { display: none; }
+  .ss-float-soccer, .ss-float-basket, .ss-float-trophy,
+  .ss-football-css, .ss-stadium-svg { display: none; }
+  .ss-hero-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 768px) and (max-width: 1199px) {
+  .ss-title-3d { font-size: 4.2rem !important; }
+  .ss-hero-stats { grid-template-columns: repeat(4, 1fr); }
+  .ss-float-soccer { top: 14%; left: 5%; }
+  .ss-float-basket { top: 32%; right: 4%; }
+  .ss-float-trophy { top: 52%; right: 44%; }
+}
+@media (min-width: 1200px) {
+  .ss-float-soccer { top: 12%; left: 8%; }
+  .ss-float-basket { top: 28%; right: 6%; }
+  .ss-float-trophy { top: 10%; right: 18%; }
+}

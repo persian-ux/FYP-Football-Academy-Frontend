@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type ComponentProps } from 'react'
+import { useState, type ChangeEvent, type ComponentProps } from 'react'
 import {
   ArrowRight,
   BadgeCheck,
@@ -22,7 +22,6 @@ import {
   Search,
   Send,
   ShieldCheck,
-  Sparkles,
   Target,
   Trophy,
   Users,
@@ -62,7 +61,6 @@ import { demoCredentials, type AuthSession, type DemoCredentials } from '@/lib/a
 import {
   featureItems,
   hubNavItems,
-  heroHighlights,
   programItems,
   statItems,
   testimonialItems,
@@ -72,6 +70,7 @@ import {
 import { GlowCard } from '@/components/common/GlowCard'
 import { RippleButton } from '@/components/common/RippleButton'
 import { SectionHeading } from '@/components/common/SectionHeading'
+import SportSphereHero from './SportSphereHero'
 
 type HubHeaderProps = {
   activeSection: string
@@ -104,15 +103,15 @@ type SectionShellProps = ComponentProps<'section'> & { id: string }
 
 function SectionShell({ id, children, className }: SectionShellProps) {
   return (
-    <section id={id} className={cn('scroll-mt-28 px-4 py-16 sm:px-6 lg:px-8 lg:py-20', className)}>
+    <section id={id} className={cn('relative z-10 scroll-mt-28 px-4 py-16 sm:px-6 lg:px-8 lg:py-20', className)}>
       <div className="mx-auto w-full max-w-7xl">{children}</div>
     </section>
   )
 }
 
-function SectionCard({ children, className }: ComponentProps<'div'>) {
+function SectionCard({ children, className, ...props }: ComponentProps<'div'>) {
   return (
-    <GlowCard className={cn('border-border/70 bg-card/70', className)}>
+    <GlowCard className={cn('border-border/70 bg-card/70', className)} {...props}>
       {children}
     </GlowCard>
   )
@@ -282,73 +281,8 @@ export function HubHeader({
   )
 }
 
-export function HeroSection({ session, onExplorePrograms, onJoinNow, onOpenLogin }: HeroSectionProps) {
-  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 })
-  const heroRef = useRef<HTMLDivElement | null>(null)
-
-  return (
-    <SectionShell id="hero" className="relative overflow-hidden pt-12 sm:pt-16 lg:pt-20">
-      <div
-        ref={heroRef}
-        className="hero-aurora pointer-events-none absolute inset-0 overflow-hidden"
-        onMouseMove={(event) => {
-          const rect = event.currentTarget.getBoundingClientRect()
-          const x = ((event.clientX - rect.left) / rect.width) * 100
-          const y = ((event.clientY - rect.top) / rect.height) * 100
-          setMousePosition({ x, y })
-          heroRef.current?.style.setProperty('--mouse-x', `${x}%`)
-          heroRef.current?.style.setProperty('--mouse-y', `${y}%`)
-        }}
-      >
-        <div className="hero-blob hero-blob-one absolute left-[8%] top-[12%] size-72 rounded-full blur-3xl animate-blob" />
-        <div className="hero-blob hero-blob-two absolute right-[10%] top-[18%] size-80 rounded-full blur-3xl animate-blob" />
-        <div className="hero-blob hero-blob-three absolute bottom-[18%] left-1/2 size-72 rounded-full blur-3xl animate-blob" />
-        <div className="hero-mouse-light absolute inset-0 opacity-70 transition-opacity duration-300" />
-      </div>
-
-      <div className="relative mx-auto max-w-5xl text-center">
-        <Badge className="mb-6 border-primary/30 bg-primary/10 px-4 py-1.5 text-primary shadow-[0_0_30px_rgba(0,153,255,0.15)]">
-          <Sparkles className="mr-2 size-3.5" />
-          Welcome to Sportsphere Academy
-        </Badge>
-
-        <h1 className="mx-auto max-w-4xl text-balance text-5xl font-black tracking-tight text-white sm:text-6xl lg:text-7xl">
-          Welcome to Sportsphere Hub
-        </h1>
-
-        <p className="mx-auto mt-6 max-w-3xl text-pretty text-lg leading-8 text-muted-foreground sm:text-xl">
-          Explore training pathways, live updates, elite coaching, and academy intelligence built for athletes,
-          parents, and coaches who want a clearer route to high-performance football.
-        </p>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <RippleButton className="bg-primary px-6 text-white shadow-[0_0_30px_rgba(0,153,255,0.22)] hover:bg-primary/90" onClick={onExplorePrograms}>
-            Explore Programs
-            <ArrowRight className="size-4" />
-          </RippleButton>
-          <RippleButton variant="outline" className="border-border/70 bg-card/40 px-6 text-white hover:bg-white/5" onClick={session ? onJoinNow : onOpenLogin}>
-            {session ? 'Open Dashboard' : 'Join Now'}
-          </RippleButton>
-        </div>
-
-        <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-3">
-          {heroHighlights.map((item, index) => (
-            <div
-              key={item}
-              className={cn(
-                'rounded-2xl border border-border/70 bg-card/60 px-4 py-3 text-sm text-muted-foreground backdrop-blur-xl animate-slide-up',
-                index === 0 && '[animation-delay:0ms]',
-                index === 1 && '[animation-delay:110ms]',
-                index === 2 && '[animation-delay:220ms]'
-              )}
-            >
-              {item}
-            </div>
-          ))}
-        </div>
-      </div>
-    </SectionShell>
-  )
+export function HeroSection({ onExplorePrograms, onJoinNow }: HeroSectionProps) {
+  return <SportSphereHero onExplorePrograms={onExplorePrograms} onJoinNow={onJoinNow} />
 }
 
 export function FeaturesGrid() {
@@ -364,7 +298,7 @@ export function FeaturesGrid() {
         {featureItems.map((feature, index) => {
           const Icon = feature.icon
           return (
-            <GlowCard key={feature.title} className="p-6" glowClassName="mix-blend-screen">
+            <GlowCard key={feature.title} className="ss-reveal p-6" glowClassName="mix-blend-screen" data-reveal="card-flip" data-delay={`${index * 60}`}>
               <div className="flex h-full flex-col gap-4">
                 <div className="flex size-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-primary shadow-[0_0_30px_rgba(0,153,255,0.12)]">
                   <Icon className="size-5" />
@@ -399,7 +333,7 @@ export function ProgramsSection({ onJoinNow }: { onJoinNow: () => void }) {
         {programItems.map((program, index) => {
           const Icon = program.icon
           return (
-            <SectionCard key={program.title} className="p-6">
+            <SectionCard key={program.title} className="ss-reveal p-6" data-reveal="card-flip" data-delay={`${index * 60}`}>
               <div className="flex h-full flex-col gap-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex size-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-primary shadow-[0_0_30px_rgba(0,153,255,0.12)]">
@@ -458,13 +392,13 @@ export function StatsSection() {
           {statItems.map((stat, index) => {
             const Icon = stat.icon
             return (
-              <GlowCard key={stat.label} className="p-6" glowClassName="mix-blend-screen">
+              <GlowCard key={stat.label} className="ss-reveal p-6" glowClassName="mix-blend-screen" data-reveal="card-flip">
                 <div className="flex h-full flex-col gap-3">
                   <div className="flex size-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-accent">
                     <Icon className="size-5" />
                   </div>
                   <div className="mt-auto space-y-1">
-                    <div className="text-4xl font-black tracking-tight text-white">{stat.value}</div>
+                    <div className="ss-stat-value text-4xl font-black tracking-tight" data-count-up={stat.value}>{stat.value}</div>
                     <div className="text-sm text-muted-foreground">{stat.label}</div>
                   </div>
                 </div>
@@ -504,7 +438,8 @@ export function LiveUpdatesWidget() {
               return (
                 <div
                   key={item.title}
-                  className="rounded-2xl border border-border/60 bg-background/20 p-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-primary/30"
+                  data-reveal="fade-up"
+                  className="ss-reveal rounded-2xl border border-border/60 bg-background/20 p-4 transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-primary/30"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
@@ -581,7 +516,7 @@ export function TestimonialsSection() {
               const Icon = testimonial.icon
               return (
                 <CarouselItem key={testimonial.name} className="md:basis-1/2 xl:basis-1/3">
-                  <GlowCard className="h-full p-6">
+                  <GlowCard className="ss-reveal h-full p-6" data-reveal="card-flip">
                     <div className="flex h-full flex-col gap-5">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex size-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-accent">
