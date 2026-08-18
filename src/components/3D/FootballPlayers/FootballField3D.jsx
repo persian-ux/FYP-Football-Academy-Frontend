@@ -122,14 +122,6 @@ const FootballField3D = () => {
             <cylinderGeometry args={[0.02, 0.02, 1, 8]} />
             <meshStandardMaterial color="#ffffff" />
           </mesh>
-          <mesh position={[0.15, 0.7, 0]}>
-            <boxGeometry args={[0.3, 0.2, 0.01]} />
-            <meshStandardMaterial
-              color={i % 2 === 0 ? '#00d4ff' : '#ff6b35'}
-              emissive={i % 2 === 0 ? '#00d4ff' : '#ff6b35'}
-              emissiveIntensity={0.5}
-            />
-          </mesh>
         </group>
       ))}
 
