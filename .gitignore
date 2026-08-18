@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Debug / analysis artifacts (CDP screenshots & scroll/animation checks)
+cdp-*.mjs
+cdp-*.png
+analyze-*.ps1
+*.png.txt
+bare-stats.txt
+bare0-grid.txt
+bare_*.png
+cam-*.png
+camlog.txt
+scroll-*.png
+todata-*.png
+todatalog.txt
+pnglist.txt
+ss-shot.png
+chrome-console.txt
