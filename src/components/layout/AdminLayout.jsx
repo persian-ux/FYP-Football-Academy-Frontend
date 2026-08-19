@@ -9,6 +9,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
+  CalendarDays,
+  Shield,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -22,6 +24,8 @@ const navItems = [
   { label: 'Fee Management', href: '/admin/fees', icon: Wallet },
   { label: 'Attendance', href: '/attendance', icon: ClipboardCheck },
   { label: 'Sections', href: '/sections', icon: Layers },
+  { label: 'Schedule Matches', href: '/scheduling', icon: CalendarDays },
+  { label: 'Teams', href: '/scheduling/teams', icon: Shield },
 ]
 
 /**
