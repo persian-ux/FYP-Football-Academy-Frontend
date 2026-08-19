@@ -15,6 +15,8 @@ import AdminUsers from './pages/AdminUsers'
 import FeesList from './pages/Fees/FeesList'
 import SectionsList from './pages/Sections/SectionsList'
 import AttendanceList from './pages/Attendance/AttendanceList'
+import Matches from './pages/Scheduling/Matches'
+import TeamsList from './pages/Scheduling/TeamsList'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminLayout from './components/layout/AdminLayout'
@@ -247,6 +249,58 @@ function AppRoutes() {
               }}
             >
               <AttendanceList isAdmin={isAdminUser(user)} />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Scheduling — matches page (read for all authenticated, manage for admins) */}
+      <Route
+        path="/scheduling"
+        element={
+          <ProtectedRoute>
+            <AdminLayout
+              session={
+                isAuthenticated
+                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                  : auth.session
+              }
+              isAdmin={isAdminUser(user)}
+              onLogout={() => {
+                localStorage.removeItem('auth_tokens')
+                localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
+                auth.signOut()
+                window.location.href = '/'
+              }}
+            >
+              <Matches isAdmin={isAdminUser(user)} />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Scheduling — teams page (read for all authenticated, manage for admins) */}
+      <Route
+        path="/scheduling/teams"
+        element={
+          <ProtectedRoute>
+            <AdminLayout
+              session={
+                isAuthenticated
+                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                  : auth.session
+              }
+              isAdmin={isAdminUser(user)}
+              onLogout={() => {
+                localStorage.removeItem('auth_tokens')
+                localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
+                auth.signOut()
+                window.location.href = '/'
+              }}
+            >
+              <TeamsList />
             </AdminLayout>
           </ProtectedRoute>
         }

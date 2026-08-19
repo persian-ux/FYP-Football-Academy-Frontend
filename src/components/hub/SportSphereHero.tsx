@@ -178,8 +178,8 @@ export default function SportSphereHero({ onExplorePrograms, onJoinNow }: Props)
         </Badge>
 
         <h1 className="ss-title-3d text-5xl font-black sm:text-6xl lg:text-7xl xl:text-8xl">
-          <span className="ss-title-word">SPORTS</span>
-          <span className="ss-title-word ss-title-word-accent" style={{ animationDelay: '0.12s' }}>PHERE</span>
+          <span className="ss-title-word">SPORT</span>
+          <span className="ss-title-word ss-title-word-accent" style={{ animationDelay: '0.12s' }}>SPHERE</span>
         </h1>
 
         <p className="ss-type-line mt-4 max-w-3xl px-2">
