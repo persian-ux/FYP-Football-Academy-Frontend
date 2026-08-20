@@ -151,7 +151,8 @@ export default function AttendanceList({ isAdmin = false }) {
   const [activeTab, setActiveTab] = useState(isAdmin ? 'daily' : 'history')
 
   // Daily sheet (roster)
-  const [dailyDate, setDailyDate] = useState(todayString())
+    const [dailyDate, setDailyDate] = useState(todayString())
+  const [dailyRoleFilter, setDailyRoleFilter] = useState('')
   const [roster, setRoster] = useState([])
   const [rosterLoading, setRosterLoading] = useState(false)
   const [rosterError, setRosterError] = useState('')
@@ -231,14 +232,24 @@ export default function AttendanceList({ isAdmin = false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, dailyDate])
 
-  // Roster derived data
+    // Daily sheet: client-side role filter
+  const filteredRoster = useMemo(
+    () =>
+      dailyRoleFilter
+        ? roster.filter((item) => item.role === dailyRoleFilter)
+        : roster,
+    [roster, dailyRoleFilter]
+  )
+
+  // Roster derived data (reflects the active role filter)
   const rosterStats = useMemo(() => {
     const stats = { present: 0, absent: 0, late: 0, excused: 0 }
-    Object.values(statusMap).forEach((status) => {
+    filteredRoster.forEach((item) => {
+      const status = statusMap[item.user_id] || item.status || 'absent'
       if (status in stats) stats[status] += 1
     })
     return stats
-  }, [statusMap])
+  }, [filteredRoster, statusMap])
 
   const handleStatusChange = (userId, status) => {
     setStatusMap((prev) => ({ ...prev, [userId]: status }))
@@ -412,10 +423,10 @@ const fetchHistory = useCallback(async () => {
           <TabsContent value="daily" className="space-y-6">
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <StatCard
+                            <StatCard
                 icon={Users}
                 label="Total"
-                value={roster.length}
+                value={filteredRoster.length}
                 accent="bg-blue-500/10 text-blue-400"
               />
               <StatCard
@@ -451,6 +462,22 @@ const fetchHistory = useCallback(async () => {
                         onChange={(e) => setDailyDate(e.target.value)}
                         className="h-10 w-full border-border/50 bg-white/5 text-white sm:w-48"
                       />
+                    </div>
+                                        <div className="flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 shrink-0 text-gray-500" />
+                      <Select
+                        value={dailyRoleFilter === '' ? '__all' : dailyRoleFilter}
+                        onValueChange={(v) => setDailyRoleFilter(v === '__all' ? '' : v)}
+                      >
+                        <SelectTrigger className="h-10 w-full border-border/50 bg-white/5 text-white sm:w-36">
+                          <SelectValue placeholder="All Roles" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__all">All Roles</SelectItem>
+                          <SelectItem value="player">Player</SelectItem>
+                          <SelectItem value="coach">Coach</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -528,7 +555,7 @@ const fetchHistory = useCallback(async () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {roster.map((item) => (
+                                                {filteredRoster.map((item) => (
                           <TableRow key={item.user_id}>
                             <TableCell>
                               <div className="flex items-center gap-3">
