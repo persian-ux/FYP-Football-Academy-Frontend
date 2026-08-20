@@ -70,6 +70,7 @@ import {
 
 import StudentReportForm from './StudentReportForm'
 import StudentReportDetail from './StudentReportDetail'
+import PlayerPerformanceChart from './PlayerPerformanceChart'
 import {
   listStudentReports,
   createStudentReport,
@@ -433,7 +434,13 @@ return (
             </SelectContent>
           </Select>
         </div>
-<Card className="border-border/40 bg-card/40 backdrop-blur-xl hidden md:block mt-4">
+
+        {/* Player performance charts */}
+        <div className="mt-4">
+          <PlayerPerformanceChart reports={reports} players={players} loading={loading} />
+        </div>
+
+        <Card className="border-border/40 bg-card/40 backdrop-blur-xl hidden md:block mt-4">
           <CardContent className="p-0">
             {loading ? (
               <div className="space-y-3 p-4">
