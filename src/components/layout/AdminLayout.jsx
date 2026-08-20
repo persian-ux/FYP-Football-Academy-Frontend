@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   CalendarDays,
   Shield,
+  ClipboardList,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -26,6 +27,7 @@ const navItems = [
   { label: 'Sections', href: '/sections', icon: Layers },
   { label: 'Schedule Matches', href: '/scheduling', icon: CalendarDays },
   { label: 'Teams', href: '/scheduling/teams', icon: Shield },
+  { label: 'Student Reports', href: '/reports', icon: ClipboardList },
 ]
 
 /**

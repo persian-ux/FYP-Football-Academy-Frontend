@@ -17,6 +17,7 @@ import SectionsList from './pages/Sections/SectionsList'
 import AttendanceList from './pages/Attendance/AttendanceList'
 import Matches from './pages/Scheduling/Matches'
 import TeamsList from './pages/Scheduling/TeamsList'
+import StudentReports from './pages/Reports/StudentReports'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import AdminLayout from './components/layout/AdminLayout'
@@ -301,6 +302,31 @@ function AppRoutes() {
               }}
             >
               <TeamsList />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+{/* Student Reports — admins (full CRUD), coaches & players (read-only) */}
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <AdminLayout
+              session={
+                isAuthenticated
+                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                  : auth.session
+              }
+              isAdmin={isAdminUser(user)}
+              onLogout={() => {
+                localStorage.removeItem('auth_tokens')
+                localStorage.removeItem('auth_user')
+                dispatch(clearTokensAndUser())
+                auth.signOut()
+                window.location.href = '/'
+              }}
+            >
+              <StudentReports isAdmin={isAdminUser(user)} />
             </AdminLayout>
           </ProtectedRoute>
         }
