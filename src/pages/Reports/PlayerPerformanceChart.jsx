@@ -65,6 +65,37 @@ function StatChip({ label, value }) {
 }
 
 /**
+ * Detailed breakdown of each metric shown alongside the chart so the
+ * exact averages are always readable at a glance.
+ */
+function PerformanceDetails({ radar }) {
+  if (!radar?.length) return null
+  return (
+    <div className="space-y-2.5 rounded-xl border border-border/40 bg-white/5 p-3">
+      <p className="text-xs font-medium text-gray-400">Detailed averages</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {radar.map((m) => (
+          <div key={m.metric} className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">{m.label}</span>
+              <span className="text-xs font-medium text-white">
+                {m.avg} <span className="text-gray-500">/ {m.max}</span>
+              </span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-cyan-400/75 transition-all"
+                style={{ width: `${m.value}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
  * PlayerPerformanceChart — visualises student report performance data.
  *
  * When a player is selected this walks every page of their reports (via the
@@ -337,8 +368,9 @@ const radarTooltip = useCallback(
                 </ResponsiveContainer>
               </div>
                                                                         </div>
-            </>
+                        </>
           )}
+          <PerformanceDetails radar={data.radar} />
           </div>
         )}
       </CardContent>

@@ -179,38 +179,79 @@ function RadarPrism3D({ radar }) {
 
 /** A single glow-tipped bar that springs toward its target height. */
 function BarColumn3D({ value, max, color, stagger = 0, offsetX = 0 }) {
-  const meshRef = useRef()
+  const stemRef = useRef()
   const capRef = useRef()
+  const labelRef = useRef()
+  const labelDom = useRef()
   const grow = useRef(0)
+  const hoverTarget = useRef(0)
+  const hover = useRef(0)
 
   useFrame(({ clock }, delta) => {
-    if (!meshRef.current || !capRef.current) return
+    if (!stemRef.current || !capRef.current || !labelRef.current) return
     const target = max > 0 ? Math.max(0, (value / max) * 2.6) : 0
-        grow.current = THREE.MathUtils.damp(grow.current, target, 9, delta)
+    grow.current = THREE.MathUtils.damp(grow.current, target, 9, delta)
+    hover.current = THREE.MathUtils.damp(hover.current, hoverTarget.current, 16, delta)
     const g = Math.max(0.001, grow.current)
-    meshRef.current.scale.y = g
-    meshRef.current.position.y = g / 2
+    stemRef.current.scale.y = g
+    stemRef.current.position.y = g / 2
     capRef.current.position.y = g
+    labelRef.current.position.y = g + 0.12
     const t = clock.getElapsedTime()
-    meshRef.current.material.emissiveIntensity = 0.45 + Math.sin(t * 2 + stagger) * 0.25
+    stemRef.current.material.emissiveIntensity =
+      0.5 + Math.sin(t * 2 + stagger) * 0.25 + hover.current * 0.9
+    if (labelDom.current) {
+      labelDom.current.style.opacity = g > 0.06 ? 1 : 0
+    }
   })
 
   return (
     <group position={[offsetX, 0, 0]}>
-      <mesh ref={meshRef} position={[0, 0.5, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.085, 0.11, 1, 18]} />
+      <mesh
+        ref={stemRef}
+        position={[0, 0.5, 0]}
+        castShadow
+        receiveShadow
+        onPointerOver={() => (hoverTarget.current = 1)}
+        onPointerOut={() => (hoverTarget.current = 0)}
+      >
+        <cylinderGeometry args={[0.09, 0.115, 1, 18]} />
         <meshStandardMaterial
           color={color}
           emissive={color}
           emissiveIntensity={0.5}
-          roughness={0.22}
-          metalness={0.45}
+          roughness={0.2}
+          metalness={0.5}
         />
       </mesh>
       <mesh ref={capRef}>
-        <sphereGeometry args={[0.09, 12, 8]} />
-        <meshStandardMaterial color="#ffffff" emissive={color} emissiveIntensity={0.9} />
+        <sphereGeometry args={[0.1, 12, 8]} />
+        <meshStandardMaterial color="#ffffff" emissive={color} emissiveIntensity={1} />
       </mesh>
+
+      {/* numeric value floating above each column */}
+      <group ref={labelRef}>
+        <Html
+          position={[0, 0.12, 0]}
+          center
+          sprite
+          distanceFactor={9}
+          pointerEvents="none"
+          wrapperClass="ppc-bar-value"
+        >
+          <span
+            ref={labelDom}
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color,
+              textShadow: `0 0 6px ${color}, 0 0 10px ${color}`,
+            }}
+          >
+            {value}
+          </span>
+        </Html>
+      </group>
     </group>
   )
 }
