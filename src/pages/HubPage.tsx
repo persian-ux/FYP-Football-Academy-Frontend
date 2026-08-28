@@ -1,7 +1,16 @@
-import { lazy, Suspense, useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { HubFooter, HubHeader, HeroSection, FeaturesGrid, LiveUpdatesWidget, ProgramsSection, StatsSection, TestimonialsSection } from '@/components/hub/HubSections'
+import {
+  HubFooter,
+  HubHeader,
+  HeroSection,
+  FeaturesGrid,
+  LiveUpdatesWidget,
+  ProgramsSection,
+  StatsSection,
+  TestimonialsSection,
+} from '@/components/hub/HubSections'
 import ScrollProgressHUD from '@/components/hud/ScrollProgressHUD'
 import SceneErrorBoundary from '@/components/common/SceneErrorBoundary'
 import { useScrollSpy } from '@/hooks/useScrollSpy'
@@ -9,8 +18,9 @@ import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import type { AuthSession } from '@/lib/auth'
 import { gsap, PREFERS_REDUCED_MOTION } from '@/lib/sportsphere'
 
+const CinematicVideoBackground = lazy(() => import('@/components/hub/CinematicVideoBackground'))
+const StadiumAtmosphereCanvas = lazy(() => import('@/components/hub/StadiumAtmosphereCanvas'))
 const FootballBackground = lazy(() => import('@/components/3D/FootballBackground'))
-const SportSphereParticleCanvas = lazy(() => import('@/components/hub/SportSphereParticleCanvas'))
 
 type HubPageProps = {
   session: AuthSession | null
@@ -24,30 +34,35 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
   const navigate = useNavigate()
   const activeSection = useScrollSpy(sectionOrder)
   const mainRef = useRef<HTMLElement | null>(null)
+  const [show3DOverlay, setShow3DOverlay] = useState(false)
+
   useRevealOnScroll(mainRef)
 
-  // ScrollTrigger parallax on every section (deep dive as you scroll)
+  // Scroll parallax depth across sections
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.utils.toArray<HTMLElement>('#features, #programs, #stats, #updates, #testimonials, #footer').forEach((section) => {
-        gsap.fromTo(
-          section,
-          { y: 0 },
-          {
-            y: -70,
-            ease: 'none',
-            scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 1.2 },
-          }
-        )
-      })
+      gsap.utils
+        .toArray<HTMLElement>('#features, #programs, #stats, #updates, #testimonials, #footer')
+        .forEach((section) => {
+          gsap.fromTo(
+            section,
+            { y: 0 },
+            {
+              y: -50,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: section,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 1.2,
+              },
+            }
+          )
+        })
     }, mainRef)
 
     return () => ctx.revert()
   }, [])
-
-  useEffect(() => {
-    console.log('Hub page loaded', { session })
-  }, [session])
 
   const scrollToSection = (sectionId: string) => {
     const target = document.getElementById(sectionId)
@@ -64,22 +79,27 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
   }
 
   const handleSubscribe = (email: string) => {
-    console.log('Newsletter stored for', email)
+    console.log('Newsletter subscription recorded for:', email)
   }
 
   return (
-    <main ref={mainRef} className="relative min-h-screen overflow-hidden bg-[#0f1419] text-white">
-      {/* Fixed background: scroll-driven 3D football match + 2D particle layer.
-          Isolated in an error boundary so a WebGL/timing failure can never
-          unmount the page — it degrades to the static CSS gradient. */}
+    <main ref={mainRef} className="relative min-h-screen overflow-hidden bg-[#070b14] text-white selection:bg-cyan-500 selection:text-slate-950">
+      {/* High-Definition Looping Video & Stadium Lighting Background */}
       <SceneErrorBoundary>
-        <Suspense fallback={null}>
-          <FootballBackground />
-          <SportSphereParticleCanvas />
+        <Suspense fallback={<div className="fixed inset-0 bg-[#070b14]" />}>
+          <CinematicVideoBackground
+            show3DOverlay={show3DOverlay}
+            onToggle3DOverlay={() => setShow3DOverlay((prev) => !prev)}
+          />
+          <StadiumAtmosphereCanvas />
+          {show3DOverlay && <FootballBackground visible={show3DOverlay} />}
         </Suspense>
       </SceneErrorBoundary>
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/50 to-transparent" />
 
+      {/* Top subtle highlight line */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-cyan-500/40 to-transparent z-40" />
+
+      {/* Hub Navigation Bar */}
       <HubHeader
         activeSection={activeSection}
         session={session}
@@ -93,7 +113,12 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
         }}
       />
 
-      <HeroSection onExplorePrograms={() => scrollToSection('programs')} onJoinNow={handleProtectedAction} />
+      {/* Sections */}
+      <HeroSection
+        session={session}
+        onExplorePrograms={() => scrollToSection('programs')}
+        onJoinNow={handleProtectedAction}
+      />
       <FeaturesGrid />
       <ProgramsSection onJoinNow={handleProtectedAction} />
       <StatsSection />
@@ -101,7 +126,7 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
       <TestimonialsSection />
       <HubFooter onSubscribe={handleSubscribe} />
 
-      {/* Broadcast-style match HUD bound to scroll */}
+      {/* Broadcast Match Clock HUD */}
       {!PREFERS_REDUCED_MOTION && <ScrollProgressHUD />}
     </main>
   )
