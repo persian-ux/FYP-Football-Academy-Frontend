@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import NotificationCenter from '@/components/NotificationCenter'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -111,24 +112,28 @@ export default function AdminLayout({ children, session, onLogout, isAdmin = fal
         {/* Footer */}
         <div className="p-4">
           {!collapsed ? (
-            <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-white">{displayName}</p>
-                <p className="text-xs text-gray-400 truncate">{displayEmail}</p>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-sm font-medium text-white truncate">{displayName}</p>
+                  <p className="text-xs text-gray-400 truncate">{displayEmail}</p>
+                </div>
               </div>
+              <NotificationCenter />
             </div>
           ) : (
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>
+              <NotificationCenter />
             </div>
           )}
           <Button

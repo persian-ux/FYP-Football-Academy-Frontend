@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
+import { ArrowLeft, ChevronLeft, ChevronRight, ShieldCheck, Sparkles, Trophy } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,9 +10,25 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import GoogleSignInButton from '@/components/GoogleSignInButton'
-import LoadingScreen from '@/components/LoadingScreen'
+import SpinningFootball from '@/components/common/SpinningFootball'
 import { loginUser } from '@/redux/api/auth'
 import { setCredentials, setError, clearError } from '@/redux/slices/authSlice'
+import { cn } from '@/lib/utils'
+
+const BACKGROUND_PICS = [
+  {
+    url: 'https://i.pinimg.com/736x/c8/70/aa/c870aa528d6d94ef3d0eabd12b7d4fd6.jpg',
+    tag: 'GOAT MINDSET',
+    quote: 'Hard work & dedication turn talent into greatness.',
+    athlete: 'Cristiano Ronaldo',
+  },
+  {
+    url: 'https://i.pinimg.com/736x/1f/ec/fc/1fecfc2519134df1d95e2acb748cdc11.jpg',
+    tag: 'MOTIVATION • DISCIPLINE',
+    quote: 'Discipline bridges the gap between ambition and achievement.',
+    athlete: 'Lamine Yamal',
+  },
+]
 
 export default function Login() {
   const dispatch = useDispatch()
@@ -19,11 +36,20 @@ export default function Login() {
   const location = useLocation()
   const { loading, error, isAuthenticated } = useSelector((state) => state.auth)
 
+  const [activeSlide, setActiveSlide] = useState(0)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
   const [fieldErrors, setFieldErrors] = useState({})
+
+  // Auto-switch background pictures every 6 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % BACKGROUND_PICS.length)
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [])
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -36,7 +62,6 @@ export default function Login() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-    // Clear field error when user types
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: '' }))
     }
@@ -48,7 +73,6 @@ export default function Login() {
     setFieldErrors({})
     dispatch(clearError())
 
-    // Basic validation
     const errors = {}
     if (!formData.email.trim()) errors.email = 'Email is required'
     if (!formData.password) errors.password = 'Password is required'
@@ -78,7 +102,6 @@ export default function Login() {
         toast.success(response.message || 'Login successful!')
         navigate('/dashboard', { replace: true })
       } else {
-        // Backend returned success=false with validation errors
         if (response.errors) {
           setFieldErrors(response.errors)
         }
@@ -99,85 +122,184 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0f1419]">
-      {/* Left side — image / illustration */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0a1628] via-[#0f1f3d] to-[#0a1628]">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-500 rounded-full blur-[100px]" />
-          <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-purple-500 rounded-full blur-[80px]" />
+    <div className="relative min-h-screen w-full flex bg-[#070b14] text-white overflow-hidden selection:bg-cyan-500 selection:text-slate-950">
+      {/* Full-screen background for mobile and ambient glow */}
+      <div className="absolute inset-0 z-0">
+        {BACKGROUND_PICS.map((pic, idx) => (
+          <div
+            key={pic.url}
+            className={cn(
+              'absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out',
+              activeSlide === idx ? 'opacity-25 lg:opacity-0 scale-100' : 'opacity-0 scale-105'
+            )}
+            style={{ backgroundImage: `url(${pic.url})` }}
+          />
+        ))}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#070b14] via-[#070b14]/90 to-[#070b14]/80 backdrop-blur-xs lg:hidden" />
+      </div>
+
+      {/* Back to Home button */}
+      <Link
+        to="/"
+        className="absolute top-6 left-6 z-30 inline-flex items-center gap-2 rounded-full border border-white/10 bg-slate-900/60 px-4 py-2 text-xs font-semibold text-slate-300 backdrop-blur-xl transition-all duration-200 hover:border-cyan-500/40 hover:bg-slate-900/90 hover:text-white hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+      >
+        <ArrowLeft className="size-3.5" />
+        <span>Back to Home</span>
+      </Link>
+
+      {/* Left side — Cinematic Background Pictures Showcase */}
+      <div className="hidden lg:relative lg:flex lg:w-7/12 flex-col justify-between overflow-hidden border-r border-white/10 p-12 xl:p-16">
+        {/* Layered Crossfade Background Images */}
+        {BACKGROUND_PICS.map((pic, idx) => (
+          <div
+            key={pic.url}
+            className={cn(
+              'absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-out transform',
+              activeSlide === idx
+                ? 'opacity-100 scale-100 filter brightness-90'
+                : 'opacity-0 scale-105 pointer-events-none'
+            )}
+            style={{ backgroundImage: `url(${pic.url})` }}
+          />
+        ))}
+
+        {/* Cinematic Vignette & Gradient Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#070b14] via-[#070b14]/40 to-[#070b14]/60 z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#070b14] z-10 pointer-events-none" />
+
+        {/* Top Branding */}
+        <div className="relative z-20 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="grid size-11 place-items-center rounded-full border border-cyan-500/40 bg-cyan-950/60 shadow-[0_0_20px_rgba(6,182,212,0.3)] group-hover:border-cyan-400 transition-all">
+              <SpinningFootball className="size-7" spinDuration="5s" />
+            </div>
+            <div className="leading-none">
+              <span className="block text-xl font-black tracking-tight text-white flex items-center gap-1.5">
+                SPORT<span className="text-cyan-400">SPHERE</span>
+              </span>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400 mt-0.5">
+                Football Academy
+              </span>
+            </div>
+          </Link>
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-cyan-300 backdrop-blur-md">
+            <Sparkles className="size-3.5" />
+            Elite Athlete Portal
+          </div>
         </div>
 
-        <div className="relative z-10 flex flex-col items-center justify-center w-full p-12">
-          <div className="max-w-md text-center">
-            <div className="mb-8">
-              <img
-                src="/logo.png"
-                alt="Sportsphere Academy"
-                className="w-24 h-24 mx-auto mb-6 brightness-0 invert opacity-80"
-              />
-            </div>
-            <h1 className="text-4xl font-bold text-white mb-4 tracking-tight">
-              Welcome Back to
-              <span className="block bg-gradient-to-r from-blue-400 via-emerald-400 to-blue-300 bg-clip-text text-transparent">
-                Sportsphere Academy
-              </span>
-            </h1>
-            <p className="text-gray-400 text-lg leading-relaxed">
-              Your premier football training platform. Track your progress,
-              connect with coaches, and elevate your game to the next level.
-            </p>
+        {/* Middle / Bottom Content & Current Slide Tag */}
+        <div className="relative z-20 max-w-xl my-auto pt-16">
+          <div className="inline-flex items-center gap-2 rounded-lg bg-black/60 border border-cyan-500/40 px-3 py-1 text-xs font-mono font-bold tracking-widest text-cyan-300 mb-4 backdrop-blur-md shadow-lg">
+            <Trophy className="size-3.5 text-cyan-400" />
+            {BACKGROUND_PICS[activeSlide].tag}
+          </div>
 
-            <div className="mt-12 grid grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-400">50+</div>
-                <div className="text-xs text-gray-500 mt-1">Training Programs</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-emerald-400">10k+</div>
-                <div className="text-xs text-gray-500 mt-1">Active Athletes</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-400">200+</div>
-                <div className="text-xs text-gray-500 mt-1">Expert Coaches</div>
-              </div>
+          <h1 className="text-4xl xl:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-md">
+            Welcome Back to{' '}
+            <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">
+              Sportsphere Academy
+            </span>
+          </h1>
+
+          <p className="mt-4 text-base xl:text-lg text-slate-200 font-medium leading-relaxed drop-shadow">
+            &ldquo;{BACKGROUND_PICS[activeSlide].quote}&rdquo;
+          </p>
+          <p className="mt-2 text-xs font-bold uppercase tracking-widest text-cyan-400">
+            — {BACKGROUND_PICS[activeSlide].athlete}
+          </p>
+
+          {/* Quick Stats Matrix */}
+          <div className="mt-10 grid grid-cols-3 gap-4 border-t border-white/15 pt-6 backdrop-blur-xs">
+            <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3.5 backdrop-blur-md">
+              <div className="text-2xl font-black text-cyan-400">50+</div>
+              <div className="text-[11px] font-semibold text-slate-300 mt-0.5">Training Programs</div>
             </div>
+            <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3.5 backdrop-blur-md">
+              <div className="text-2xl font-black text-emerald-400">10k+</div>
+              <div className="text-[11px] font-semibold text-slate-300 mt-0.5">Active Athletes</div>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3.5 backdrop-blur-md">
+              <div className="text-2xl font-black text-purple-400">200+</div>
+              <div className="text-[11px] font-semibold text-slate-300 mt-0.5">Expert Coaches</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Slide Switcher Controls */}
+        <div className="relative z-20 flex items-center justify-between pt-6 border-t border-white/10">
+          <div className="flex items-center gap-2">
+            {BACKGROUND_PICS.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveSlide(idx)}
+                className={cn(
+                  'h-2 rounded-full transition-all duration-300 cursor-pointer',
+                  activeSlide === idx
+                    ? 'w-8 bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.6)]'
+                    : 'w-2 bg-white/30 hover:bg-white/60'
+                )}
+                aria-label={`Switch to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveSlide((prev) => (prev === 0 ? BACKGROUND_PICS.length - 1 : prev - 1))}
+              className="grid size-8 place-items-center rounded-full border border-white/15 bg-black/40 text-slate-300 hover:text-white hover:border-cyan-400 transition-all cursor-pointer backdrop-blur-md"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSlide((prev) => (prev + 1) % BACKGROUND_PICS.length)}
+              className="grid size-8 place-items-center rounded-full border border-white/15 bg-black/40 text-slate-300 hover:text-white hover:border-cyan-400 transition-all cursor-pointer backdrop-blur-md"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="size-4" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Right side — form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+      {/* Right side — Form */}
+      <div className="relative z-20 flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-12">
         <div className="w-full max-w-md">
-          <Card className="border-border/40 bg-card/40 backdrop-blur-xl shadow-2xl">
-            <CardContent className="p-8">
+          <Card className="border-white/15 bg-slate-900/80 backdrop-blur-2xl shadow-[0_15px_50px_rgba(0,0,0,0.7)] text-white">
+            <CardContent className="p-8 sm:p-10">
               {/* Mobile logo */}
-              <div className="lg:hidden flex justify-center mb-6">
-                <img
-                  src="/logo.png"
-                  alt="Sportsphere Academy"
-                  className="w-16 h-16 brightness-0 invert opacity-80"
-                />
+              <div className="lg:hidden flex flex-col items-center justify-center mb-6">
+                <div className="grid size-14 place-items-center rounded-full border border-cyan-500/40 bg-cyan-950/60 shadow-[0_0_25px_rgba(6,182,212,0.4)] mb-3">
+                  <SpinningFootball className="size-8" spinDuration="5s" />
+                </div>
+                <div className="text-lg font-black tracking-tight text-white">
+                  SPORT<span className="text-cyan-400">SPHERE</span>
+                </div>
               </div>
 
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white">Sign In</h2>
-                <p className="text-gray-400 mt-1 text-sm">
-                  Enter your credentials to access your account
+                <h2 className="text-3xl font-black text-white tracking-tight">Sign In</h2>
+                <p className="text-slate-400 mt-1.5 text-xs font-medium">
+                  Enter your credentials to access your academy account
                 </p>
               </div>
 
               {/* Error alert */}
               {error && (
-                <Alert variant="destructive" className="mb-6">
+                <Alert variant="destructive" className="mb-6 border-red-500/30 bg-red-950/40 text-red-300">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-300">
-                    Email
+                  <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Email Address
                   </Label>
                   <Input
                     id="email"
@@ -186,7 +308,7 @@ export default function Login() {
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`bg-white/5 border-border/50 text-white placeholder:text-gray-500 h-11 ${
+                    className={`h-11 border-white/15 bg-slate-950/60 text-white placeholder:text-slate-500 focus-visible:border-cyan-500 ${
                       fieldErrors.email ? 'border-destructive' : ''
                     }`}
                   />
@@ -197,12 +319,12 @@ export default function Login() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-gray-300">
+                    <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-slate-300">
                       Password
                     </Label>
                     <Link
                       to="/forgot-password"
-                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
                     >
                       Forgot password?
                     </Link>
@@ -214,7 +336,7 @@ export default function Login() {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`bg-white/5 border-border/50 text-white placeholder:text-gray-500 h-11 ${
+                    className={`h-11 border-white/15 bg-slate-950/60 text-white placeholder:text-slate-500 focus-visible:border-cyan-500 ${
                       fieldErrors.password ? 'border-destructive' : ''
                     }`}
                   />
@@ -226,11 +348,11 @@ export default function Login() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full h-11 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium"
+                  className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black tracking-wide shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all cursor-pointer"
                   disabled={loading}
                 >
                   {loading ? (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-slate-950 font-bold">
                       <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                         <circle
                           className="opacity-25"
@@ -250,7 +372,7 @@ export default function Login() {
                       Signing in...
                     </span>
                   ) : (
-                    'Sign In'
+                    'Sign In to Dashboard'
                   )}
                 </Button>
               </form>
@@ -258,21 +380,21 @@ export default function Login() {
               {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border/30" />
+                  <div className="w-full border-t border-white/10" />
                 </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-card/40 px-3 text-gray-500">or continue with</span>
+                <div className="relative flex justify-center text-xs uppercase tracking-widest font-bold">
+                  <span className="bg-slate-900/90 px-3 text-slate-400">or continue with</span>
                 </div>
               </div>
 
               {/* Google Sign In */}
               <GoogleSignInButton text="Sign in with Google" />
 
-              <p className="text-center text-sm text-gray-400 mt-6">
+              <p className="text-center text-xs text-slate-400 mt-6 font-medium">
                 Don&apos;t have an account?{' '}
                 <Link
                   to="/register"
-                  className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                  className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors underline-offset-4 hover:underline"
                 >
                   Sign up
                 </Link>
@@ -284,4 +406,3 @@ export default function Login() {
     </div>
   )
 }
-

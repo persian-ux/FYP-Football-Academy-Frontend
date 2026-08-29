@@ -5,13 +5,10 @@ import FootballScene from './FootballPlayers/FootballScene'
 import { useDeviceCapability, deviceSupports3D } from '../../hooks/useDeviceCapability'
 import './football-3d.css'
 
-// Full-screen fixed background: a live football match that plays out as
-// the visitor scrolls down the page.
-const FootballBackground = () => {
+const FootballBackground = ({ visible = true }) => {
   const { supportsWebGL, isMobile } = useDeviceCapability()
   const hostRef = useRef(null)
 
-  // Let the (CSS) hero field/silhouette hand over to the real 3D pitch.
   useEffect(() => {
     if (deviceSupports3D()) {
       document.body.classList.add('has-football-bg')
@@ -19,12 +16,16 @@ const FootballBackground = () => {
     return () => document.body.classList.remove('has-football-bg')
   }, [supportsWebGL, isMobile])
 
-  if (!supportsWebGL || isMobile) {
-    return <div className="football-css-fallback" aria-hidden="true" />
+  if (!supportsWebGL || isMobile || !visible) {
+    return null
   }
 
   return (
-    <div ref={hostRef} className="football-bg" aria-hidden="true">
+    <div
+      ref={hostRef}
+      className="football-bg pointer-events-none transition-opacity duration-700 opacity-60"
+      aria-hidden="true"
+    >
       <Canvas
         dpr={isMobile ? 1 : [1, 1.8]}
         camera={{ position: [0, 18, 6], fov: 58 }}
@@ -32,12 +33,12 @@ const FootballBackground = () => {
       >
         <Suspense fallback={null}>
           <AdaptiveDpr pixelated={!isMobile} />
-          <ambientLight intensity={0.35} color="#9fc4ff" />
-          <directionalLight position={[6, 18, 4]} intensity={0.35} color="#cfe8ff" />
+          <ambientLight intensity={0.45} color="#9fc4ff" />
+          <directionalLight position={[6, 18, 4]} intensity={0.65} color="#cfe8ff" castShadow />
           {/* Night sky sparkle */}
           <Stars radius={90} depth={45} count={1200} factor={3.4} saturation={0} fade speed={0.6} />
           <FootballScene />
-          <fog attach="fog" args={['#0a0a1a', 22, 70]} />
+          <fog attach="fog" args={['#070b14', 22, 70]} />
         </Suspense>
       </Canvas>
     </div>
