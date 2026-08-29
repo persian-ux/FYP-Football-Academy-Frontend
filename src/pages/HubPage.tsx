@@ -17,6 +17,8 @@ import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import type { AuthSession } from '@/lib/auth'
 import { gsap } from '@/lib/sportsphere'
 
+import WhatsAppFloatingButton from '@/components/hub/WhatsAppFloatingButton'
+
 const CinematicVideoBackground = lazy(() => import('@/components/hub/CinematicVideoBackground'))
 const StadiumAtmosphereCanvas = lazy(() => import('@/components/hub/StadiumAtmosphereCanvas'))
 const FootballBackground = lazy(() => import('@/components/3D/FootballBackground'))
@@ -124,6 +126,9 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
       <LiveUpdatesWidget />
       <TestimonialsSection />
       <HubFooter onSubscribe={handleSubscribe} />
+
+      {/* Floating WhatsApp Contact Button */}
+      <WhatsAppFloatingButton />
     </main>
   )
 }

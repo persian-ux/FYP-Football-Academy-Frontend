@@ -604,6 +604,17 @@ export function HubFooter({ onSubscribe }: NewsletterFormProps) {
               <ul className="mt-4 space-y-2.5 text-xs text-slate-400">
                 <li>director@sportsphere.academy</li>
                 <li>+1 (555) 021-4001</li>
+                <li>
+                  <a
+                    href="https://wa.me/15550214001?text=Hello%20Sportsphere%20Academy!%20I%20would%20like%20to%20get%20more%20information."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                  >
+                    <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+                    Chat on WhatsApp
+                  </a>
+                </li>
                 <li>Mon - Sat, 08:00 - 20:00</li>
               </ul>
             </div>
