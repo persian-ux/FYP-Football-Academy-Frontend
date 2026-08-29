@@ -1,7 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Calendar, ChevronDown, Play, Shield, Sparkles, Trophy, Users, Zap } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useEffect, useRef } from 'react'
+import { ArrowRight, Calendar, ChevronDown, Shield, Sparkles, Trophy, Users, Zap } from 'lucide-react'
 import { RippleButton } from '@/components/common/RippleButton'
 import { heroHighlights } from '@/data/hubContent'
 import { gsap, runCountUp, PREFERS_REDUCED_MOTION } from '@/lib/sportsphere'
@@ -25,7 +23,6 @@ type Props = {
 export default function SportSphereHero({ onExplorePrograms, onJoinNow }: Props) {
   const heroRef = useRef<HTMLDivElement | null>(null)
   const typeRef = useRef<HTMLSpanElement | null>(null)
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
 
   useEffect(() => {
     const hero = heroRef.current
@@ -154,15 +151,6 @@ export default function SportSphereHero({ onExplorePrograms, onJoinNow }: Props)
         >
           Book Academy Trial
         </RippleButton>
-
-        <Button
-          variant="ghost"
-          onClick={() => setIsVideoModalOpen(true)}
-          className="h-12 px-5 rounded-xl border border-amber-400/30 bg-amber-400/10 font-semibold text-amber-300 hover:bg-amber-400/20 backdrop-blur-md transition-all duration-300"
-        >
-          <Play className="mr-2 size-4 fill-current" />
-          Watch Matchday Reel
-        </Button>
       </div>
 
       {/* Highlights Tag Cloud */}
@@ -216,26 +204,6 @@ export default function SportSphereHero({ onExplorePrograms, onJoinNow }: Props)
         <span>Scroll to explore</span>
         <ChevronDown className="size-3.5" />
       </div>
-
-      {/* Matchday Reel Video Modal */}
-      <Dialog open={isVideoModalOpen} onOpenChange={setIsVideoModalOpen}>
-        <DialogContent className="max-w-4xl border-white/15 bg-slate-950 text-white p-2 sm:p-4 rounded-2xl">
-          <DialogHeader className="p-2">
-            <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
-              <Sparkles className="size-4 text-amber-400" />
-              Sportsphere Elite Academy • Official Matchday Trailer
-            </DialogTitle>
-          </DialogHeader>
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black">
-            <video
-              src="https://assets.mixkit.co/videos/preview/mixkit-stadium-lights-at-night-4228-large.mp4"
-              controls
-              autoPlay
-              className="h-full w-full object-cover"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   )
 }

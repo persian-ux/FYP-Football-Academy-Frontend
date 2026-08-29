@@ -11,12 +11,11 @@ import {
   StatsSection,
   TestimonialsSection,
 } from '@/components/hub/HubSections'
-import ScrollProgressHUD from '@/components/hud/ScrollProgressHUD'
 import SceneErrorBoundary from '@/components/common/SceneErrorBoundary'
 import { useScrollSpy } from '@/hooks/useScrollSpy'
 import { useRevealOnScroll } from '@/hooks/useRevealOnScroll'
 import type { AuthSession } from '@/lib/auth'
-import { gsap, PREFERS_REDUCED_MOTION } from '@/lib/sportsphere'
+import { gsap } from '@/lib/sportsphere'
 
 const CinematicVideoBackground = lazy(() => import('@/components/hub/CinematicVideoBackground'))
 const StadiumAtmosphereCanvas = lazy(() => import('@/components/hub/StadiumAtmosphereCanvas'))
@@ -125,9 +124,6 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
       <LiveUpdatesWidget />
       <TestimonialsSection />
       <HubFooter onSubscribe={handleSubscribe} />
-
-      {/* Broadcast Match Clock HUD */}
-      {!PREFERS_REDUCED_MOTION && <ScrollProgressHUD />}
     </main>
   )
 }
