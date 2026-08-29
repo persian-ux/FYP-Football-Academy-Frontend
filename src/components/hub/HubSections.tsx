@@ -46,6 +46,7 @@ import { RippleButton } from '@/components/common/RippleButton'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import SportSphereHero from './SportSphereHero'
 import SpinningFootball from '../common/SpinningFootball'
+import { LiveMatchCenter } from './LiveMatchCenter'
 
 type HubHeaderProps = {
   activeSection: string
@@ -383,101 +384,12 @@ export function StatsSection() {
 }
 
 export function LiveUpdatesWidget() {
-  return (
-    <SectionShell id="updates">
-      <SectionHeading
-        eyebrow="Live Match Center"
-        title="Fixtures, Matchday Reports & Academy News"
-        description="Stay connected with live tournament results, tactical briefings, and youth championship fixtures."
-      />
-
-      <div className="mt-12 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        {/* Main News Card */}
-        <GlowCard className="p-6 lg:p-8 border-white/10 bg-slate-900/60 backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-cyan-400">
-            <Flame className="size-4.5" />
-            <span className="text-xs font-bold uppercase tracking-widest">Featured Tournament</span>
-          </div>
-          <h3 className="mt-4 text-2xl sm:text-3xl font-black text-white tracking-tight">
-            International Youth Cup 2026 Qualifications
-          </h3>
-          <p className="mt-3 text-sm leading-relaxed text-slate-400 max-w-2xl">
-            Sportsphere Academy U-17 & U-19 squads have qualified for the continental championship group stages.
-            Review live match streaming schedule and squad rosters.
-          </p>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
-            {updateItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 transition-all duration-200 hover:border-cyan-500/40 hover:-translate-y-0.5"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-400">
-                        <Icon className="size-4.5" />
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{item.label}</div>
-                        <div className="mt-0.5 text-base font-bold text-white">{item.title}</div>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="border-white/15 text-slate-300 text-[11px]">
-                      {item.time}
-                    </Badge>
-                  </div>
-                  <p className="mt-3 text-xs leading-relaxed text-slate-400">{item.description}</p>
-                </div>
-              )
-            })}
-          </div>
-        </GlowCard>
-
-        {/* Matchday Schedule Card */}
-        <GlowCard className="p-6 lg:p-8 border-white/10 bg-slate-900/60 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Live Fixtures</div>
-              <h3 className="mt-1 text-2xl font-black text-white">Upcoming Matchdays</h3>
-            </div>
-            <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-              <span className="size-2 rounded-full bg-emerald-400 animate-pulse mr-1.5" />
-              Active Cycle
-            </Badge>
-          </div>
-
-          <div className="mt-6 space-y-3.5">
-            {[
-              { match: 'U-16 vs London Elite', time: 'Saturday, 18:30', venue: 'Main Pitch 1', tag: 'Next Match' },
-              { match: 'U-18 vs Pro Pathway XI', time: 'Sunday, 20:00', venue: 'Stadium Arena', tag: 'Showcase' },
-              { match: 'UEFA Scout Combine', time: 'Wednesday, 17:00', venue: 'Tactical Center', tag: 'Scout Day' },
-            ].map((fixture) => (
-              <div
-                key={fixture.match}
-                className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 transition-all hover:border-cyan-500/40"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-base font-bold text-white">{fixture.match}</div>
-                    <div className="mt-0.5 text-xs text-slate-400">{fixture.venue}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-bold text-cyan-400 font-mono">{fixture.time}</div>
-                    <div className="mt-0.5 text-[10px] uppercase font-bold tracking-widest text-slate-400">
-                      {fixture.tag}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </GlowCard>
-      </div>
-    </SectionShell>
-  )
+  return <LiveMatchCenter />
 }
+
+export { LiveMatchCenter }
+
+
 
 export function TestimonialsSection() {
   return (
