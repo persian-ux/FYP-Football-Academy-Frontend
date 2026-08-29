@@ -56,6 +56,8 @@ import {
 } from '@/services/schedulingService'
 import { listSections } from '@/services/sectionService'
 import { fetchFootballNews } from '@/services/footballApi'
+import NotificationCenter from '@/components/NotificationCenter'
+import NotificationBanners from '@/components/NotificationBanners'
 
 // ============== Stat Card Component ==============
 function StatCard({
@@ -435,6 +437,8 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
 
             {/* Quick Header Actions */}
             <div className="flex flex-wrap items-center gap-3">
+              <NotificationCenter />
+
               <Button
                 variant="outline"
                 size="sm"
@@ -459,6 +463,9 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
             </div>
           </div>
         </div>
+
+        {/* Dynamic Notification Banners (Fee Status, Match Updates, System Alerts) */}
+        <NotificationBanners />
 
         {/* Global Error Banner */}
         {error && (
