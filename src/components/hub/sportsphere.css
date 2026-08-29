@@ -126,3 +126,13 @@ body.has-football-bg {
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
+
+/* Continuous Authentic Football Spin Animation */
+@keyframes ssFootballSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

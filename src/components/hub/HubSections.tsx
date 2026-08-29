@@ -45,6 +45,7 @@ import { GlowCard } from '@/components/common/GlowCard'
 import { RippleButton } from '@/components/common/RippleButton'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import SportSphereHero from './SportSphereHero'
+import SpinningFootball from '../common/SpinningFootball'
 
 type HubHeaderProps = {
   activeSection: string
@@ -100,8 +101,8 @@ export function HubHeader({
   onLogout,
 }: HubHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#070b14]/85 backdrop-blur-2xl transition-all duration-300">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
+    <header className="fixed inset-x-0 top-0 z-50 px-4 py-4 sm:px-6 transition-all duration-300">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#070b14]/75 px-4 py-3 backdrop-blur-2xl shadow-[0_10px_35px_rgba(0,0,0,0.5)]">
         {/* Brand Logo */}
         <button
           type="button"
@@ -109,23 +110,8 @@ export function HubHeader({
           className="flex items-center gap-3 text-left group"
           aria-label="Scroll to hero section"
         >
-          <div className="relative grid size-10 place-items-center rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] group-hover:border-cyan-400 transition-colors">
-            <svg
-              viewBox="0 0 24 24"
-              className="size-5.5 text-cyan-400"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="m4.93 4.93 4.24 4.24" />
-              <path d="m14.83 9.17 4.24-4.24" />
-              <path d="m14.83 14.83 4.24 4.24" />
-              <path d="m9.17 14.83-4.24 4.24" />
-              <circle cx="12" cy="12" r="4" />
-            </svg>
+          <div className="relative grid size-10 place-items-center rounded-full border border-cyan-500/40 bg-cyan-950/40 shadow-[0_0_20px_rgba(6,182,212,0.3)] group-hover:border-cyan-400 group-hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-all">
+            <SpinningFootball className="size-6.5" spinDuration="5s" />
           </div>
           <div className="leading-none">
             <span className="block text-lg font-black tracking-tight text-white flex items-center gap-1.5">
@@ -208,8 +194,8 @@ export function HubHeader({
             <SheetContent side="right" className="border-l-white/10 bg-[#070b14] text-white">
               <SheetHeader className="border-b border-white/10 pb-4">
                 <SheetTitle className="flex items-center gap-2.5 text-left text-white">
-                  <div className="grid size-8 place-items-center rounded-lg bg-cyan-500/20 text-cyan-400">
-                    <Zap className="size-4" />
+                  <div className="grid size-8 place-items-center rounded-full border border-cyan-500/30 bg-cyan-950/40 text-cyan-400">
+                    <SpinningFootball className="size-5" spinDuration="5s" />
                   </div>
                   Sportsphere Academy
                 </SheetTitle>
@@ -586,7 +572,7 @@ export function HubFooter({ onSubscribe }: NewsletterFormProps) {
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
             <div className="flex items-center gap-2.5 text-cyan-400">
-              <MoonStar className="size-5" />
+              <SpinningFootball className="size-5" spinDuration="5s" />
               <span className="text-xs font-bold uppercase tracking-widest">Sportsphere Academy</span>
             </div>
             <h3 className="mt-3 text-3xl font-black text-white tracking-tight">
