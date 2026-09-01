@@ -1,0 +1,136 @@
+/* ============================================================
+   SportSphere Academy - ChatBoard (FAQ Assistant) Styles
+   Built from scratch — independent of the floating chatbot widget.
+   Brand green: #1b8a4a (primary) / #126a37 (dark).
+   ============================================================ */
+
+/* Shared bubble shape so user & bot bubbles stay visually unified */
+.chatboard__bubble {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.1rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-width: 85%;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.35);
+}
+
+/* Bot bubble — dark green glass */
+.chatboard__bubble-bot {
+  background: linear-gradient(135deg, rgba(27, 138, 74, 0.16), rgba(18, 106, 55, 0.28));
+  border-color: rgba(27, 138, 74, 0.3);
+  color: #f1f5f9;
+}
+
+/* User bubble — slate/glass, right-aligned */
+.chatboard__bubble-user {
+  background: rgba(15, 23, 42, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+/* Typing / "thinking" indicator dots */
+.chatboard__typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chatboard__typing span {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: rgba(27, 138, 74, 0.6);
+  animation: chatboardPulse 1.4s ease-in-out infinite;
+}
+
+.chatboard__typing span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.chatboard__typing span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes chatboardPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Safe markdown-link anchors rendered inside bot answers */
+.chatboard__link {
+  color: #35d07f;
+  text-decoration: underline;
+  text-decoration-color: rgba(53, 208, 127, 0.4);
+  text-underline-offset: 0.16em;
+  font-weight: 600;
+  word-break: break-all;
+  transition: color 200ms ease, text-decoration-color 200ms ease;
+}
+
+.chatboard__link:hover,
+.chatboard__link:focus-visible {
+  color: #1b8a4a;
+  text-decoration-color: #1b8a4a;
+}
+
+/* Custom slim scrollbar for the conversation body */
+.chatboard__body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(27, 138, 74, 0.5) rgba(7, 11, 20, 0.4);
+}
+
+.chatboard__body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chatboard__body::-webkit-scrollbar-track {
+  background: rgba(7, 11, 20, 0.4);
+  border-radius: 4px;
+}
+
+.chatboard__body::-webkit-scrollbar-thumb {
+  background: rgba(27, 138, 74, 0.5);
+  border-radius: 4px;
+}
+
+.chatboard__body::-webkit-scrollbar-thumb:hover {
+  background: rgba(27, 138, 74, 0.7);
+}
+
+/* Skeleton shimmer used while questions load */
+.chatboard__skeleton {
+  border-radius: 1rem;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.55),
+    rgba(27, 138, 74, 0.14),
+    rgba(15, 23, 42, 0.55)
+  );
+  background-size: 200% auto;
+  animation: chatboardShimmer 1.6s linear infinite;
+}
+
+@keyframes chatboardShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chatboard__typing span,
+  .chatboard__skeleton {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
