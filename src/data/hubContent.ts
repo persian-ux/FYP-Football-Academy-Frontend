@@ -68,6 +68,7 @@ export const hubNavItems: NavItem[] = [
   { id: 'stats', label: 'Stats' },
   { id: 'updates', label: 'Updates' },
   { id: 'testimonials', label: 'Testimonials' },
+  { id: 'chat', label: 'FAQ' },
   { id: 'footer', label: 'Contact' },
 ]
 

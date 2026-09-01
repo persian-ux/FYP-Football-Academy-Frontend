@@ -18,6 +18,7 @@ import type { AuthSession } from '@/lib/auth'
 import { gsap } from '@/lib/sportsphere'
 
 import WhatsAppFloatingButton from '@/components/hub/WhatsAppFloatingButton'
+import ChatBoard from '@/components/hub/ChatBoard'
 
 const CinematicVideoBackground = lazy(() => import('@/components/hub/CinematicVideoBackground'))
 const StadiumAtmosphereCanvas = lazy(() => import('@/components/hub/StadiumAtmosphereCanvas'))
@@ -29,7 +30,7 @@ type HubPageProps = {
   onSignOut: () => void
 }
 
-const sectionOrder = ['hero', 'features', 'programs', 'stats', 'updates', 'testimonials', 'footer']
+const sectionOrder = ['hero', 'features', 'programs', 'stats', 'updates', 'testimonials', 'chat', 'footer']
 
 export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) {
   const navigate = useNavigate()
@@ -43,7 +44,7 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.utils
-        .toArray<HTMLElement>('#features, #programs, #stats, #updates, #testimonials, #footer')
+        .toArray<HTMLElement>('#features, #programs, #stats, #updates, #testimonials, #chat, #footer')
         .forEach((section) => {
           gsap.fromTo(
             section,
@@ -125,6 +126,7 @@ export default function HubPage({ session, onSignIn, onSignOut }: HubPageProps) 
       <StatsSection />
       <LiveUpdatesWidget />
       <TestimonialsSection />
+      <ChatBoard />
       <HubFooter onSubscribe={handleSubscribe} />
 
       {/* Floating WhatsApp Contact Button */}
