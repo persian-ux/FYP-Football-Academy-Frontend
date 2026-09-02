@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSelector } from 'react-redux'
-import { getStudentsWithFeeStatus, getFeeRecords } from '@/services/feeService'
+import { getStudentsWithFeeStatus } from '@/services/feeService'
 import { listUpcomingMatches, formatDateTime } from '@/services/schedulingService'
-import { isAdminUser } from '@/lib/admin'
+import { isAdminUser, isPlayerUser } from '@/lib/admin'
 
 const NOTIF_STORAGE_KEY = 'fa_notifications_read_v1'
 
@@ -86,7 +86,7 @@ export function useNotifications() {
             severity: 'info',
             timestamp: new Date(nextMatch.match_date || Date.now()).toISOString(),
             raw: nextMatch,
-            link: '/scheduling',
+            link: isPlayerUser(user) ? '/dashboard' : '/scheduling',
           })
         }
       } catch (err) {
@@ -160,7 +160,7 @@ export function useNotifications() {
                 timestamp: new Date().toISOString(),
                 status: 'paid',
                 amount: currentStudentFee.amount,
-                link: '/admin/fees',
+                link: isAdmin ? '/admin/fees' : '/dashboard',
               })
             } else {
               list.push({
@@ -174,7 +174,7 @@ export function useNotifications() {
                 timestamp: new Date().toISOString(),
                 status: status,
                 amount: currentStudentFee.amount,
-                link: '/admin/fees',
+                link: isAdmin ? '/admin/fees' : '/dashboard',
               })
             }
           } else {
@@ -187,7 +187,7 @@ export function useNotifications() {
               severity: 'warning',
               timestamp: new Date().toISOString(),
               status: 'unpaid',
-              link: '/admin/fees',
+              link: isAdmin ? '/admin/fees' : '/dashboard',
             })
           }
         }

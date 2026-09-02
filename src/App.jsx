@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner'
 
 import Dashboard from './pages/Dashboard.jsx'
+import PlayerDashboard from './pages/PlayerDashboard.jsx'
 import HubPage from './pages/HubPage.tsx'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -24,7 +25,7 @@ import AdminLayout from './components/layout/AdminLayout'
 import { restoreSession, setCredentials, clearTokensAndUser } from './redux/slices/authSlice'
 import { useDemoAuth } from './hooks/useDemoAuth.ts'
 import { getStoredSession } from './lib/auth'
-import { isAdminUser } from './lib/admin'
+import { isAdminUser, isPlayerUser } from './lib/admin'
 
 function AppRoutes() {
   const { isAuthenticated, user } = useSelector((state) => state.auth)
@@ -95,27 +96,28 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Protected routes */}
+      {/* Protected routes — players get the player portal, everyone else keeps the admin dashboard */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <AdminLayout
-              session={
-                isAuthenticated
-                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
-                  : auth.session
-              }
-              isAdmin={isAdminUser(user)}
-              onLogout={() => {
-                sessionStorage.removeItem('auth_tokens')
-                sessionStorage.removeItem('auth_user')
-                dispatch(clearTokensAndUser())
-                auth.signOut()
-                window.location.href = '/'
-              }}
-            >
-              <Dashboard
+            {isPlayerUser(user) ? (
+              <PlayerDashboard
+                session={
+                  isAuthenticated
+                    ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                    : auth.session
+                }
+                onLogout={() => {
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
+                  dispatch(clearTokensAndUser())
+                  auth.signOut()
+                  window.location.href = '/'
+                }}
+              />
+            ) : (
+              <AdminLayout
                 session={
                   isAuthenticated
                     ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
@@ -129,8 +131,24 @@ function AppRoutes() {
                   auth.signOut()
                   window.location.href = '/'
                 }}
-              />
-            </AdminLayout>
+              >
+                <Dashboard
+                  session={
+                    isAuthenticated
+                      ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                      : auth.session
+                  }
+                  isAdmin={isAdminUser(user)}
+                  onLogout={() => {
+                    sessionStorage.removeItem('auth_tokens')
+                    sessionStorage.removeItem('auth_user')
+                    dispatch(clearTokensAndUser())
+                    auth.signOut()
+                    window.location.href = '/'
+                  }}
+                />
+              </AdminLayout>
+            )}
           </ProtectedRoute>
         }
       />

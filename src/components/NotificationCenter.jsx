@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import {
   Bell,
   Wallet,
   CalendarDays,
   CheckCircle2,
-  AlertCircle,
   Info,
   Check,
   Trash2,
@@ -21,8 +21,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { isPlayerUser } from '@/lib/admin'
 
 export default function NotificationCenter() {
+  const { user } = useSelector((state) => state.auth)
   const {
     notifications,
     unreadCount,
@@ -227,10 +229,12 @@ export default function NotificationCenter() {
         {/* Footer */}
         <div className="border-t border-white/10 p-2.5 text-center bg-black/20">
           <Link
-            to="/admin/fees"
+            to={isPlayerUser(user) ? '/dashboard' : '/admin/fees'}
             className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
           >
-            Manage All Fees & Match Alerts →
+            {isPlayerUser(user)
+              ? 'View My Fees & Match Alerts →'
+              : 'Manage All Fees & Match Alerts →'}
           </Link>
         </div>
       </PopoverContent>
