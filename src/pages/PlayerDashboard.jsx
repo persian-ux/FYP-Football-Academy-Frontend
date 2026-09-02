@@ -19,9 +19,12 @@ import {
   ChevronRight,
   ChevronLeft,
   Flame,
+  User,
 } from 'lucide-react'
 import {
   ResponsiveContainer,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
@@ -189,29 +192,93 @@ function SectionShell({ title, description, icon: Icon, accent, onBack, actions 
 // Overview — front page with all summaries
 // ---------------------------------------------------------------------------
 
-function SummaryCard({ title, icon: Icon, accent, onOpen, children }) {
+// ============== Admin-style Stat Card (mirrors Dashboard.jsx) ==============
+function PlayerStatCard({ title, value, icon: Icon, loading, color = 'blue', subtitle, onClick }) {
+  const colorThemes = {
+    blue: {
+      gradient: 'from-blue-500/15 via-blue-600/5 to-transparent border-blue-500/30 text-blue-400',
+      iconBg: 'bg-blue-500/20 text-blue-400',
+      glow: 'group-hover:shadow-[0_0_25px_-5px_rgba(59,130,246,0.3)]',
+    },
+    purple: {
+      gradient: 'from-purple-500/15 via-purple-600/5 to-transparent border-purple-500/30 text-purple-400',
+      iconBg: 'bg-purple-500/20 text-purple-400',
+      glow: 'group-hover:shadow-[0_0_25px_-5px_rgba(168,85,247,0.3)]',
+    },
+    emerald: {
+      gradient: 'from-emerald-500/15 via-emerald-600/5 to-transparent border-emerald-500/30 text-emerald-400',
+      iconBg: 'bg-emerald-500/20 text-emerald-400',
+      glow: 'group-hover:shadow-[0_0_25px_-5px_rgba(16,185,129,0.3)]',
+    },
+    amber: {
+      gradient: 'from-amber-500/15 via-amber-600/5 to-transparent border-amber-500/30 text-amber-400',
+      iconBg: 'bg-amber-500/20 text-amber-400',
+      glow: 'group-hover:shadow-[0_0_25px_-5px_rgba(245,158,11,0.3)]',
+    },
+  }
+
+  const theme = colorThemes[color] || colorThemes.blue
+
   return (
-    <Card className="border-border/40 bg-card/40 backdrop-blur-xl transition-colors hover:border-white/20">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm text-white">
-          <Icon className={cn('h-4 w-4', accent)} /> {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <div className="min-h-16 flex-1">{children}</div>
-        <button
-          onClick={onOpen}
-          className="flex w-full items-center justify-between rounded-xl border border-border/40 bg-white/[0.02] px-3 py-2 text-sm text-gray-200 transition-colors hover:bg-white/5"
-        >
-          View details <ChevronRight className="h-4 w-4 text-gray-500" />
-        </button>
+    <Card
+      onClick={onClick}
+      className={`group relative overflow-hidden border bg-card/60 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${theme.gradient} ${theme.glow} ${onClick ? 'cursor-pointer' : ''}`}
+    >
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {title}
+          </p>
+          <div className={`rounded-xl p-2.5 transition-transform duration-300 group-hover:scale-110 ${theme.iconBg}`}>
+            <Icon className="size-5" />
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-baseline justify-between">
+          {loading ? (
+            <Skeleton className="h-9 w-20 bg-white/10" />
+          ) : (
+            <div className="text-3xl font-black tracking-tight text-white">{value}</div>
+          )}
+        </div>
+
+        {subtitle && (
+          <p className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+            <span>{subtitle}</span>
+            {onClick && (
+              <span className="flex items-center text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                View <ChevronRight className="ml-0.5 size-3" />
+              </span>
+            )}
+          </p>
+        )}
       </CardContent>
     </Card>
   )
 }
 
+// ============== Custom Recharts Tooltip (admin style) ==============
+function AdminChartTooltip({ active, payload, label }) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-xl border border-border/80 bg-[#141923]/95 p-3 shadow-xl backdrop-blur-md">
+        <p className="text-xs font-semibold text-gray-300">{label}</p>
+        {payload.map((entry, index) => (
+          <div key={`item-${index}`} className="mt-1 flex items-center gap-2 text-xs">
+            <span className="inline-block size-2 rounded-full" style={{ backgroundColor: entry.color }} />
+            <span className="text-gray-400">{entry.name}:</span>
+            <span className="font-bold text-white">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+  return null
+}
+
 function OverviewView({
   displayName,
+  email,
   loading,
   error,
   loadDashboard,
@@ -223,49 +290,65 @@ function OverviewView({
   matches,
   perf,
   onNavigate,
+  onOpenProfile,
 }) {
-  const nextMatch = matches[0]
-  const home = nextMatch?.home_team_detail?.name || nextMatch?.home_team_name || nextMatch?.home_team || 'Home'
-  const away = nextMatch?.away_team_detail?.name || nextMatch?.away_team_name || nextMatch?.away_team || 'Away'
+  const [chartMetric, setChartMetric] = useState('stats')
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 sm:p-6 lg:p-8">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-r from-emerald-950/40 via-card/70 to-cyan-950/30 p-6 shadow-2xl backdrop-blur-2xl">
-        <div className="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className="border-emerald-400/40 bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-400">
-                <Flame className="mr-1 size-3 animate-pulse" />
-                Player Hub
-              </Badge>
-              <Badge variant="outline" className="border-border/60 text-xs text-muted-foreground">
-                Season 2026 Live
-              </Badge>
+    <div className="min-h-screen bg-[#0b0e14] p-4 text-white sm:p-6 lg:p-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+        {/* ================= TOP HERO BANNER (admin style) ================= */}
+        <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-r from-blue-950/40 via-card/70 to-purple-950/30 p-6 shadow-2xl backdrop-blur-2xl">
+          <div className="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-blue-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -left-16 -bottom-16 size-72 rounded-full bg-emerald-500/10 blur-3xl" />
+
+          <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="border-primary/40 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+                  <Flame className="mr-1 size-3 animate-pulse text-primary" />
+                  Player Hub
+                </Badge>
+                <Badge variant="outline" className="border-border/60 text-xs text-muted-foreground">
+                  Season 2026 Live
+                </Badge>
+              </div>
+
+              <h1 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">
+                Welcome back,{' '}
+                <span className="bg-gradient-to-r from-blue-400 via-sky-300 to-emerald-400 bg-clip-text text-transparent">
+                  {displayName}
+                </span>
+              </h1>
+              <p className="mt-1 text-sm text-gray-400">
+                Logged in as <span className="font-medium text-gray-300">{email}</span> • Here is your personal academy overview.
+              </p>
             </div>
-            <h1 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">
-              Welcome back,{' '}
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                {displayName}
-              </span>
-            </h1>
-            <p className="mt-1 text-sm text-gray-400">
-              Here is your academy overview — fees, attendance, schedule &amp; performance.
-            </p>
+
+            {/* Quick Header Actions */}
+            <div className="flex flex-wrap items-center gap-3">
+              <NotificationCenter />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadDashboard}
+                disabled={loading}
+                className="border-border/70 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
+              >
+                <RefreshCw className={`mr-2 size-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => onNavigate('matches')}
+                className="bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-blue-600"
+              >
+                <CalendarDays className="mr-1 size-4" />
+                My Schedule
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadDashboard}
-            disabled={loading}
-            className="border-border/70 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white"
-          >
-            <RefreshCw className={`mr-2 size-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
         </div>
-      </div>
 
       <NotificationBanners />
 
@@ -275,112 +358,410 @@ function OverviewView({
         </Alert>
       )}
 
-      {/* Mini stats */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MiniStat
-          label="Fee Status"
-          value={loading ? '…' : fee ? feeStatus : '—'}
+      {/* ================= STATS / KPI GRID (admin style) ================= */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <PlayerStatCard
+          title="Fee Status"
+          value={fee ? feeStatus.toUpperCase() : '—'}
           icon={Wallet}
-          accent="bg-emerald-500/10 text-emerald-400"
+          loading={loading}
+          color="emerald"
+          subtitle={fee ? `${feeAmount || '—'} · due ${feeDueDate || '—'}` : 'No fee record yet'}
+          onClick={() => onNavigate('fees')}
         />
-        <MiniStat
-          label="Attendance Rate"
-          value={loading ? '…' : `${attendanceStats.rate}%`}
+        <PlayerStatCard
+          title="Attendance Rate"
+          value={`${attendanceStats.rate}%`}
           icon={ClipboardCheck}
-          accent="bg-blue-500/10 text-blue-400"
+          loading={loading}
+          color="blue"
+          subtitle={`${attendanceStats.present}/${attendanceStats.total} sessions attended`}
+          onClick={() => onNavigate('attendance')}
         />
-        <MiniStat
-          label="Upcoming Matches"
-          value={loading ? '…' : matches.length}
-          icon={CalendarDays}
-          accent="bg-amber-500/10 text-amber-400"
-        />
-        <MiniStat
-          label="Avg Rating"
-          value={loading ? '…' : perf.count ? `${perf.avgRating}/10` : '—'}
+        <PlayerStatCard
+          title="Avg Performance"
+          value={perf.count ? `${perf.avgRating}/10` : '—'}
           icon={Activity}
-          accent="bg-purple-500/10 text-purple-400"
+          loading={loading}
+          color="purple"
+          subtitle={`${perf.count} coach report(s)`}
+          onClick={() => onNavigate('performance')}
+        />
+        <PlayerStatCard
+          title="Upcoming Matches"
+          value={matches.length}
+          icon={CalendarDays}
+          loading={loading}
+          color="amber"
+          subtitle="Scheduled fixtures"
+          onClick={() => onNavigate('matches')}
         />
       </div>
 
-      {/* Summary cards — click to open details */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard title="My Fee Status" icon={Wallet} accent="text-emerald-400" onOpen={() => onNavigate('fees')}>
-          {loading ? (
-            <Skeleton className="h-16 w-full rounded-xl bg-white/5" />
-          ) : fee ? (
-            <div className="flex flex-col gap-1">
-              <StatusBadge status={feeStatus} />
-              <p className="text-2xl font-black text-white">{feeAmount || '—'}</p>
-              {feeDueDate && <p className="text-xs text-gray-400">Due {feeDueDate}</p>}
+      {/* ================= QUICK MODULES BAR (admin style) ================= */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div
+          onClick={() => onNavigate('fees')}
+          className="group flex cursor-pointer items-center justify-between rounded-2xl border border-border/50 bg-card/40 p-3.5 backdrop-blur-md transition hover:border-emerald-500/40 hover:bg-emerald-500/5"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-400">
+              <Wallet className="size-4" />
             </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">No fee record found yet.</p>
-          )}
-        </SummaryCard>
+            <div>
+              <p className="text-xs text-muted-foreground">My Fees</p>
+              <p className="text-sm font-bold text-white">{fee ? feeStatus.toUpperCase() : '—'}</p>
+            </div>
+          </div>
+          <ChevronRight className="size-4 text-gray-500 transition-transform group-hover:translate-x-0.5 group-hover:text-emerald-400" />
+        </div>
 
-        <SummaryCard title="My Attendance" icon={ClipboardCheck} accent="text-blue-400" onOpen={() => onNavigate('attendance')}>
-          {loading ? (
-            <Skeleton className="h-16 w-full rounded-xl bg-white/5" />
-          ) : attendanceStats.total > 0 ? (
-            <div className="flex flex-col gap-1.5">
-              <p className="text-2xl font-black text-white">{attendanceStats.rate}%</p>
-              <p className="text-xs text-gray-400">
-                {attendanceStats.present}/{attendanceStats.total} sessions attended
-              </p>
-              <div className="h-1.5 w-full rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400"
-                  style={{ width: `${attendanceStats.rate}%` }}
-                />
+        <div
+          onClick={() => onNavigate('attendance')}
+          className="group flex cursor-pointer items-center justify-between rounded-2xl border border-border/50 bg-card/40 p-3.5 backdrop-blur-md transition hover:border-purple-500/40 hover:bg-purple-500/5"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-lg bg-purple-500/10 p-2 text-purple-400">
+              <ClipboardCheck className="size-4" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Attendance</p>
+              <p className="text-sm font-bold text-white">{attendanceStats.rate}% Rate</p>
+            </div>
+          </div>
+          <ChevronRight className="size-4 text-gray-500 transition-transform group-hover:translate-x-0.5 group-hover:text-purple-400" />
+        </div>
+
+        <div
+          onClick={() => onNavigate('matches')}
+          className="group flex cursor-pointer items-center justify-between rounded-2xl border border-border/50 bg-card/40 p-3.5 backdrop-blur-md transition hover:border-amber-500/40 hover:bg-amber-500/5"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-lg bg-amber-500/10 p-2 text-amber-400">
+              <CalendarDays className="size-4" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Schedule</p>
+              <p className="text-sm font-bold text-white">{matches.length} Fixtures</p>
+            </div>
+          </div>
+          <ChevronRight className="size-4 text-gray-500 transition-transform group-hover:translate-x-0.5 group-hover:text-amber-400" />
+        </div>
+
+        <div
+          onClick={() => onNavigate('performance')}
+          className="group flex cursor-pointer items-center justify-between rounded-2xl border border-border/50 bg-card/40 p-3.5 backdrop-blur-md transition hover:border-blue-500/40 hover:bg-blue-500/5"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-lg bg-blue-500/10 p-2 text-blue-400">
+              <Activity className="size-4" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Performance</p>
+              <p className="text-sm font-bold text-white">{perf.count ? `${perf.avgRating}/10` : '—'}</p>
+            </div>
+          </div>
+          <ChevronRight className="size-4 text-gray-500 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-400" />
+        </div>
+
+        <div
+          onClick={onOpenProfile}
+          className="group flex cursor-pointer items-center justify-between rounded-2xl border border-border/50 bg-card/40 p-3.5 backdrop-blur-md transition hover:border-cyan-500/40 hover:bg-cyan-500/5"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-lg bg-cyan-500/10 p-2 text-cyan-400">
+              <User className="size-4" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Profile</p>
+              <p className="text-sm font-bold text-white">My Account</p>
+            </div>
+          </div>
+          <ChevronRight className="size-4 text-gray-500 transition-transform group-hover:translate-x-0.5 group-hover:text-cyan-400" />
+        </div>
+      </div>
+
+      {/* ================= MAIN GRID — chart + right column ================= */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* Performance Trend Chart (admin-style AreaChart) */}
+        <Card className="border-border/50 bg-card/50 shadow-xl backdrop-blur-xl lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-white">
+                <Activity className="size-4 text-purple-400" /> Performance Trend
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Goals &amp; assists across your recent reports
+              </CardDescription>
+            </div>
+            <div className="flex rounded-lg border border-border/60 bg-white/[0.02] p-0.5">
+              {[
+                { id: 'stats', label: 'Goals & Assists' },
+                { id: 'rating', label: 'Rating' },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setChartMetric(m.id)}
+                  className={cn(
+                    'rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                    chartMetric === m.id
+                      ? 'bg-blue-500/20 text-blue-300'
+                      : 'text-gray-400 hover:text-white'
+                  )}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 w-full">
+              {perf.bars.length === 0 ? (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  No performance data yet — coach reports will appear here.
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={perf.bars} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="pGradientPrimary" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0099ff" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#0099ff" stopOpacity={0.0} />
+                      </linearGradient>
+                      <linearGradient id="pGradientAccent" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00ff88" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#00ff88" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2a3045" vertical={false} />
+                    <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis allowDecimals={false} stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip content={<AdminChartTooltip />} />
+                    {chartMetric === 'stats' ? (
+                      <>
+                        <Area
+                          type="monotone"
+                          dataKey="goals"
+                          name="Goals"
+                          stroke="#0099ff"
+                          strokeWidth={2.5}
+                          fillOpacity={1}
+                          fill="url(#pGradientPrimary)"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="assists"
+                          name="Assists"
+                          stroke="#00ff88"
+                          strokeWidth={2.5}
+                          fillOpacity={1}
+                          fill="url(#pGradientAccent)"
+                        />
+                      </>
+                    ) : (
+                      <Area
+                        type="monotone"
+                        dataKey="rating"
+                        name="Rating"
+                        stroke="#a855f7"
+                        strokeWidth={2.5}
+                        fillOpacity={1}
+                        fill="url(#pGradientAccent)"
+                      />
+                    )}
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border/40 pt-4 text-center">
+              <div className="rounded-xl bg-white/[0.02] p-2.5">
+                <p className="text-xs text-muted-foreground">Total Goals</p>
+                <p className="text-lg font-bold text-blue-400">{perf.goals}</p>
+              </div>
+              <div className="rounded-xl bg-white/[0.02] p-2.5">
+                <p className="text-xs text-muted-foreground">Total Assists</p>
+                <p className="text-lg font-bold text-emerald-400">{perf.assists}</p>
+              </div>
+              <div className="rounded-xl bg-white/[0.02] p-2.5">
+                <p className="text-xs text-muted-foreground">Avg Rating</p>
+                <p className="text-lg font-bold text-amber-400">{perf.count ? perf.avgRating : '—'}</p>
               </div>
             </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">No attendance records yet.</p>
-          )}
-        </SummaryCard>
+          </CardContent>
+        </Card>
 
-        <SummaryCard title="Next Match" icon={CalendarDays} accent="text-amber-400" onOpen={() => onNavigate('matches')}>
-          {loading ? (
-            <Skeleton className="h-16 w-full rounded-xl bg-white/5" />
-          ) : nextMatch ? (
-            <div className="flex flex-col gap-1">
-              <p className="truncate text-sm font-semibold text-white">
-                {home} <span className="text-gray-500">vs</span> {away}
-              </p>
-              <p className="flex items-center gap-1 text-xs text-gray-400">
-                <Clock className="h-3 w-3" /> {formatDateTime(nextMatch.match_date)}
-              </p>
-              {nextMatch.venue && (
-                <p className="flex items-center gap-1 text-xs text-gray-400">
-                  <MapPin className="h-3 w-3" /> {nextMatch.venue}
+        {/* Upcoming Fixtures widget */}
+        <Card className="border-border/50 bg-card/50 shadow-xl backdrop-blur-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold text-white">
+              <CalendarDays className="size-4 text-amber-400" /> Upcoming Fixtures
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">Next scheduled matches</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2.5">
+            {loading ? (
+              <Skeleton className="h-56 w-full rounded-xl bg-white/5" />
+            ) : matches.length === 0 ? (
+              <div className="flex h-56 items-center justify-center rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground">
+                No upcoming matches
+              </div>
+            ) : (
+              matches.slice(0, 4).map((m) => {
+                const mh = m.home_team_detail?.name || m.home_team_name || m.home_team || 'Home'
+                const ma = m.away_team_detail?.name || m.away_team_name || m.away_team || 'Away'
+                return (
+                  <div
+                    key={m.id}
+                    className="rounded-xl border border-border/40 bg-white/[0.02] p-3 transition-colors hover:border-amber-500/30"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {mh} <span className="text-gray-500">vs</span> {ma}
+                      </p>
+                      <Badge className="shrink-0 border-amber-500/30 bg-amber-500/10 text-[10px] uppercase text-amber-400">
+                        {m.status || 'SCHEDULED'}
+                      </Badge>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="h-3 w-3" /> {formatDateTime(m.match_date)}
+                      </span>
+                      {m.venue && (
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="h-3 w-3" /> {m.venue}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+            <button
+              onClick={() => onNavigate('matches')}
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border/40 bg-white/[0.02] py-2 text-xs font-medium text-gray-300 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              View full schedule <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </CardContent>
+        </Card>
+      </div>
+
+      </div>
+
+      {/* Right info cards — fee / attendance / latest report */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="border-border/50 bg-card/50 shadow-xl backdrop-blur-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold text-white">
+              <Wallet className="size-4 text-emerald-400" /> My Fee Status
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">Tuition standing</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {loading ? (
+              <Skeleton className="h-16 w-full rounded-xl bg-white/5" />
+            ) : fee ? (
+              <>
+                <div className="flex items-center gap-2">
+                  {feeStatus === 'paid' ? (
+                    <ShieldCheck className="size-4 text-emerald-400" />
+                  ) : (
+                    <AlertTriangle className="size-4 text-red-400" />
+                  )}
+                  <StatusBadge status={feeStatus} />
+                  <p className="text-xl font-black text-white">{feeAmount || '—'}</p>
+                </div>
+                {feeDueDate && <p className="text-xs text-gray-400">Due {feeDueDate}</p>}
+                <p className="text-xs text-gray-500">
+                  {feeStatus === 'paid'
+                    ? 'Tuition fully paid — keep it up!'
+                    : feeStatus === 'overdue'
+                      ? 'Fee overdue — please settle soon.'
+                      : 'Fee not fully settled yet.'}
                 </p>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">No upcoming matches scheduled.</p>
-          )}
-        </SummaryCard>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">No fee record found yet.</p>
+            )}
+            <button
+              onClick={() => onNavigate('fees')}
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border/40 bg-white/[0.02] py-2 text-xs font-medium text-gray-300 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              View fee details <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </CardContent>
+        </Card>
 
-        <SummaryCard title="My Performance" icon={Activity} accent="text-purple-400" onOpen={() => onNavigate('performance')}>
-          {loading ? (
-            <Skeleton className="h-16 w-full rounded-xl bg-white/5" />
-          ) : perf.count > 0 ? (
-            <div className="flex flex-col gap-1">
-              <p className="flex items-center gap-1.5 text-2xl font-black text-white">
-                <Star className="h-4 w-4 text-yellow-400" /> {perf.avgRating}/10
-              </p>
-              <p className="text-xs text-gray-400">
-                {perf.goals} goals · {perf.assists} assists · {perf.count} reports
-              </p>
-              {perf.latest && (
-                <p className="text-xs text-gray-500">Last report {shortDate(perf.latest.report_date)}</p>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">No performance reports yet.</p>
-          )}
-        </SummaryCard>
+        <Card className="border-border/50 bg-card/50 shadow-xl backdrop-blur-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold text-white">
+              <ClipboardCheck className="size-4 text-blue-400" /> My Attendance
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">This season at a glance</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {loading ? (
+              <Skeleton className="h-16 w-full rounded-xl bg-white/5" />
+            ) : attendanceStats.total > 0 ? (
+              <>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-xl font-black text-white">{attendanceStats.rate}%</p>
+                  <p className="text-xs text-gray-400">
+                    {attendanceStats.present}/{attendanceStats.total} sessions
+                  </p>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400"
+                    style={{ width: `${attendanceStats.rate}%` }}
+                  />
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">No attendance records yet.</p>
+            )}
+            <button
+              onClick={() => onNavigate('attendance')}
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border/40 bg-white/[0.02] py-2 text-xs font-medium text-gray-300 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              View attendance <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-card/50 shadow-xl backdrop-blur-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold text-white">
+              <Activity className="size-4 text-purple-400" /> Latest Coach Report
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">Most recent feedback</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {loading ? (
+              <Skeleton className="h-16 w-full rounded-xl bg-white/5" />
+            ) : perf.latest ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <Star className="size-4 text-yellow-400" />
+                  <p className="text-xl font-black text-white">{perf.latest.rating ?? '—'}/10</p>
+                  <span className="text-xs text-gray-400">{shortDate(perf.latest.report_date)}</span>
+                </div>
+                {perf.latest.coach_remarks && (
+                  <p className="line-clamp-2 text-xs italic text-gray-400">“{perf.latest.coach_remarks}”</p>
+                )}
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">No reports yet.</p>
+            )}
+            <button
+              onClick={() => onNavigate('performance')}
+              className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-xl border border-border/40 bg-white/[0.02] py-2 text-xs font-medium text-gray-300 transition-colors hover:bg-white/5 hover:text-white"
+            >
+              View all reports <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
@@ -915,6 +1296,7 @@ export default function PlayerDashboard({ session = null, onLogout = () => {} })
         name: shortDate(r.report_date),
         goals: Number(r.goals) || 0,
         assists: Number(r.assists) || 0,
+        rating: Number(r.rating) || 0,
       }))
     return {
       count,
@@ -1052,6 +1434,7 @@ export default function PlayerDashboard({ session = null, onLogout = () => {} })
             matches={matches}
             perf={perf}
             onNavigate={handleNavigate}
+            onOpenProfile={() => navigate('/profile')}
           />
         )}
         {activeSection === 'fees' && (
