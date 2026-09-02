@@ -86,7 +86,7 @@ export function useNotifications() {
             severity: 'info',
             timestamp: new Date(nextMatch.match_date || Date.now()).toISOString(),
             raw: nextMatch,
-            link: isPlayerUser(user) ? '/dashboard' : '/scheduling',
+            link: isPlayerUser(user) ? '/dashboard?section=matches' : '/scheduling',
           })
         }
       } catch (err) {
@@ -160,7 +160,7 @@ export function useNotifications() {
                 timestamp: new Date().toISOString(),
                 status: 'paid',
                 amount: currentStudentFee.amount,
-                link: isAdmin ? '/admin/fees' : '/dashboard',
+                link: isAdmin ? '/admin/fees' : '/dashboard?section=fees',
               })
             } else {
               list.push({
@@ -174,7 +174,7 @@ export function useNotifications() {
                 timestamp: new Date().toISOString(),
                 status: status,
                 amount: currentStudentFee.amount,
-                link: isAdmin ? '/admin/fees' : '/dashboard',
+                link: isAdmin ? '/admin/fees' : '/dashboard?section=fees',
               })
             }
           } else {
@@ -187,7 +187,7 @@ export function useNotifications() {
               severity: 'warning',
               timestamp: new Date().toISOString(),
               status: 'unpaid',
-              link: isAdmin ? '/admin/fees' : '/dashboard',
+              link: isAdmin ? '/admin/fees' : '/dashboard?section=fees',
             })
           }
         }
@@ -203,7 +203,7 @@ export function useNotifications() {
         message: 'Regular squad training session scheduled for this weekend. Bring full kit.',
         severity: 'info',
         timestamp: new Date().toISOString(),
-        link: '/sections',
+        link: isAdmin ? '/sections' : '/dashboard?section=matches',
       })
 
       setNotifications(list)
