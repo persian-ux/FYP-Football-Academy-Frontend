@@ -19,7 +19,7 @@ export const demoCredentials: DemoCredentials = {
 const authKey = 'sportsphere-demo-session'
 
 function canUseStorage() {
-  return typeof window !== 'undefined' && Boolean(window.localStorage)
+  return typeof window !== 'undefined' && Boolean(window.sessionStorage)
 }
 
 export function getStoredSession() {
@@ -28,7 +28,7 @@ export function getStoredSession() {
   }
 
   try {
-    const rawSession = window.localStorage.getItem(authKey)
+    const rawSession = window.sessionStorage.getItem(authKey)
     return rawSession ? (JSON.parse(rawSession) as AuthSession) : null
   } catch (error) {
     console.log('Auth storage read failed', error)
@@ -53,7 +53,7 @@ export function signInDemo(credentials: DemoCredentials) {
   }
 
   if (canUseStorage()) {
-    window.localStorage.setItem(authKey, JSON.stringify(session))
+    window.sessionStorage.setItem(authKey, JSON.stringify(session))
   }
 
   console.log('Demo auth sign-in succeeded', session)
@@ -63,7 +63,7 @@ export function signInDemo(credentials: DemoCredentials) {
 
 export function signOutDemo() {
   if (canUseStorage()) {
-    window.localStorage.removeItem(authKey)
+    window.sessionStorage.removeItem(authKey)
   }
 
   console.log('Demo auth signed out')

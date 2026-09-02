@@ -59,8 +59,8 @@ export default function Profile() {
     .slice(0, 2)
 
   const handleLogout = () => {
-    localStorage.removeItem('auth_tokens')
-    localStorage.removeItem('auth_user')
+    sessionStorage.removeItem('auth_tokens')
+    sessionStorage.removeItem('auth_user')
     window.location.href = '/login'
   }
 

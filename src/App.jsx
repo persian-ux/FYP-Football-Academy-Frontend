@@ -31,7 +31,7 @@ function AppRoutes() {
   const dispatch = useDispatch()
   const auth = useDemoAuth()
 
-  // If not yet bootstrapped from localStorage, show loading
+  // If not yet bootstrapped from sessionStorage, show loading
   // We check both demo auth ready and redux auth initialized
   if (!auth.ready) {
     return (
@@ -73,8 +73,8 @@ function AppRoutes() {
               return session
             }}
             onSignOut={() => {
-              localStorage.removeItem('auth_tokens')
-              localStorage.removeItem('auth_user')
+              sessionStorage.removeItem('auth_tokens')
+              sessionStorage.removeItem('auth_user')
               dispatch(clearTokensAndUser())
               auth.signOut()
               window.location.href = '/'
@@ -108,8 +108,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -123,8 +123,8 @@ function AppRoutes() {
                 }
                 isAdmin={isAdminUser(user)}
                 onLogout={() => {
-                  localStorage.removeItem('auth_tokens')
-                  localStorage.removeItem('auth_user')
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
                   dispatch(clearTokensAndUser())
                   auth.signOut()
                   window.location.href = '/'
@@ -164,8 +164,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -190,8 +190,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -216,8 +216,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -242,8 +242,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -268,8 +268,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -294,8 +294,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -319,8 +319,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -341,10 +341,17 @@ function AppRoutes() {
 function App() {
   const dispatch = useDispatch()
 
-  // Bootstrap auth state from localStorage on mount
+  // Bootstrap auth state from sessionStorage on mount.
+  // Sessions now live in sessionStorage so closing the tab automatically logs the user out.
   useEffect(() => {
-    const tokens = localStorage.getItem('auth_tokens')
-    const user = localStorage.getItem('auth_user')
+    // One-time cleanup of auth data persisted to localStorage by previous versions,
+    // which no longer gets read and would otherwise stay around forever.
+    localStorage.removeItem('auth_tokens')
+    localStorage.removeItem('auth_user')
+    localStorage.removeItem('sportsphere-demo-session')
+
+    const tokens = sessionStorage.getItem('auth_tokens')
+    const user = sessionStorage.getItem('auth_user')
 
     if (tokens && user) {
       try {
@@ -356,8 +363,8 @@ function App() {
         )
       } catch {
         // Ignore corrupted data
-        localStorage.removeItem('auth_tokens')
-        localStorage.removeItem('auth_user')
+        sessionStorage.removeItem('auth_tokens')
+        sessionStorage.removeItem('auth_user')
       }
     } else {
       // If no Redux auth but a demo session exists, restore it into Redux

@@ -95,8 +95,8 @@ export default function Login() {
         }
         const user = response.data.user || response.data
 
-        localStorage.setItem('auth_tokens', JSON.stringify(tokens))
-        localStorage.setItem('auth_user', JSON.stringify(user))
+        sessionStorage.setItem('auth_tokens', JSON.stringify(tokens))
+        sessionStorage.setItem('auth_user', JSON.stringify(user))
 
         dispatch(setCredentials({ user, tokens }))
         toast.success(response.message || 'Login successful!')

@@ -12,7 +12,7 @@ const axiosInstance = axios.create({
 // Request interceptor — attach access token
 axiosInstance.interceptors.request.use(
   (config) => {
-    const tokens = localStorage.getItem('auth_tokens')
+    const tokens = sessionStorage.getItem('auth_tokens')
     if (tokens) {
       try {
         const { access } = JSON.parse(tokens)
@@ -52,8 +52,8 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Don't try refresh if the failed request was itself the refresh call
       if (originalRequest.url?.includes('/api/auth/refresh/')) {
-        localStorage.removeItem('auth_tokens')
-        localStorage.removeItem('auth_user')
+        sessionStorage.removeItem('auth_tokens')
+        sessionStorage.removeItem('auth_user')
         window.location.href = '/login'
         return Promise.reject(error)
       }
@@ -71,7 +71,7 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const tokens = localStorage.getItem('auth_tokens')
+        const tokens = sessionStorage.getItem('auth_tokens')
         let refreshToken = null
         if (tokens) {
           const parsed = JSON.parse(tokens)
@@ -94,7 +94,7 @@ axiosInstance.interceptors.response.use(
           access: newAccess,
           refresh: newRefresh || refreshToken,
         }
-        localStorage.setItem('auth_tokens', JSON.stringify(newTokens))
+        sessionStorage.setItem('auth_tokens', JSON.stringify(newTokens))
 
         processQueue(null, newAccess)
 
@@ -102,8 +102,8 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        localStorage.removeItem('auth_tokens')
-        localStorage.removeItem('auth_user')
+        sessionStorage.removeItem('auth_tokens')
+        sessionStorage.removeItem('auth_user')
         window.location.href = '/login'
         return Promise.reject(refreshError)
       } finally {
