@@ -23,8 +23,8 @@ export const login = createAsyncThunk(
           access: response.data.access,
           refresh: response.data.refresh,
         }
-        localStorage.setItem('auth_tokens', JSON.stringify(tokens))
-        localStorage.setItem('auth_user', JSON.stringify(response.data.user || response.data))
+        sessionStorage.setItem('auth_tokens', JSON.stringify(tokens))
+        sessionStorage.setItem('auth_user', JSON.stringify(response.data.user || response.data))
         return response.data
       }
       return rejectWithValue(response)
@@ -49,8 +49,8 @@ export const register = createAsyncThunk(
           access: response.data.access,
           refresh: response.data.refresh,
         }
-        localStorage.setItem('auth_tokens', JSON.stringify(tokens))
-        localStorage.setItem('auth_user', JSON.stringify(response.data.user || response.data))
+        sessionStorage.setItem('auth_tokens', JSON.stringify(tokens))
+        sessionStorage.setItem('auth_user', JSON.stringify(response.data.user || response.data))
         return response.data
       }
       return rejectWithValue(response)
@@ -80,8 +80,8 @@ export const logout = createAsyncThunk(
       return rejectWithValue(errorData)
     } finally {
       // Always clear local tokens regardless of backend response
-      localStorage.removeItem('auth_tokens')
-      localStorage.removeItem('auth_user')
+      sessionStorage.removeItem('auth_tokens')
+      sessionStorage.removeItem('auth_user')
     }
   }
 )
@@ -92,7 +92,7 @@ export const getProfile = createAsyncThunk(
     try {
       const response = await fetchProfile()
       if (response.success) {
-        localStorage.setItem('auth_user', JSON.stringify(response.data))
+        sessionStorage.setItem('auth_user', JSON.stringify(response.data))
         return response.data
       }
       return rejectWithValue(response)
@@ -171,7 +171,7 @@ export const requestResetPassword = createAsyncThunk(
 
 function getInitialUser() {
   try {
-    const stored = localStorage.getItem('auth_user')
+    const stored = sessionStorage.getItem('auth_user')
     return stored ? JSON.parse(stored) : null
   } catch {
     return null
@@ -180,7 +180,7 @@ function getInitialUser() {
 
 function getInitialTokens() {
   try {
-    const stored = localStorage.getItem('auth_tokens')
+    const stored = sessionStorage.getItem('auth_tokens')
     return stored ? JSON.parse(stored) : null
   } catch {
     return null
@@ -216,8 +216,8 @@ const authSlice = createSlice({
       state.error = null
       state.errors = null
       state.successMessage = null
-      localStorage.removeItem('auth_tokens')
-      localStorage.removeItem('auth_user')
+      sessionStorage.removeItem('auth_tokens')
+      sessionStorage.removeItem('auth_user')
     },
     setUser(state, action) {
       state.user = action.payload

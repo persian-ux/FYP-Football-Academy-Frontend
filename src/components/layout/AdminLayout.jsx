@@ -51,11 +51,11 @@ export default function AdminLayout({ children, session, onLogout, isAdmin = fal
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0f1419] text-white">
-      {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-[#0f1419] text-white">
+      {/* Sidebar — full viewport height so it stays static while content scrolls */}
       <aside
         className={cn(
-          'flex flex-col border-r border-border/40 bg-card/40 backdrop-blur-xl transition-all duration-200',
+          'flex h-full flex-col shrink-0 border-r border-border/40 bg-card/40 backdrop-blur-xl transition-all duration-200',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
@@ -151,8 +151,8 @@ export default function AdminLayout({ children, session, onLogout, isAdmin = fal
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
+      {/* Main content — scrolls independently while sidebar stays fixed */}
+      <main className="flex-1 overflow-y-auto">
         {children}
       </main>
     </div>

@@ -22,7 +22,7 @@ export async function loginUser(payload) {
  * Log out the current user (invalidate refresh token).
  */
 export async function logoutUser() {
-  const tokens = localStorage.getItem('auth_tokens')
+  const tokens = sessionStorage.getItem('auth_tokens')
   let refreshToken = null
   if (tokens) {
     try {

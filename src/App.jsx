@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner'
 
 import Dashboard from './pages/Dashboard.jsx'
+import PlayerDashboard from './pages/PlayerDashboard.jsx'
 import HubPage from './pages/HubPage.tsx'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -24,14 +25,14 @@ import AdminLayout from './components/layout/AdminLayout'
 import { restoreSession, setCredentials, clearTokensAndUser } from './redux/slices/authSlice'
 import { useDemoAuth } from './hooks/useDemoAuth.ts'
 import { getStoredSession } from './lib/auth'
-import { isAdminUser } from './lib/admin'
+import { isAdminUser, isPlayerUser } from './lib/admin'
 
 function AppRoutes() {
   const { isAuthenticated, user } = useSelector((state) => state.auth)
   const dispatch = useDispatch()
   const auth = useDemoAuth()
 
-  // If not yet bootstrapped from localStorage, show loading
+  // If not yet bootstrapped from sessionStorage, show loading
   // We check both demo auth ready and redux auth initialized
   if (!auth.ready) {
     return (
@@ -73,8 +74,8 @@ function AppRoutes() {
               return session
             }}
             onSignOut={() => {
-              localStorage.removeItem('auth_tokens')
-              localStorage.removeItem('auth_user')
+              sessionStorage.removeItem('auth_tokens')
+              sessionStorage.removeItem('auth_user')
               dispatch(clearTokensAndUser())
               auth.signOut()
               window.location.href = '/'
@@ -95,27 +96,28 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Protected routes */}
+      {/* Protected routes — players get the player portal, everyone else keeps the admin dashboard */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <AdminLayout
-              session={
-                isAuthenticated
-                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
-                  : auth.session
-              }
-              isAdmin={isAdminUser(user)}
-              onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
-                dispatch(clearTokensAndUser())
-                auth.signOut()
-                window.location.href = '/'
-              }}
-            >
-              <Dashboard
+            {isPlayerUser(user) ? (
+              <PlayerDashboard
+                session={
+                  isAuthenticated
+                    ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                    : auth.session
+                }
+                onLogout={() => {
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
+                  dispatch(clearTokensAndUser())
+                  auth.signOut()
+                  window.location.href = '/'
+                }}
+              />
+            ) : (
+              <AdminLayout
                 session={
                   isAuthenticated
                     ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
@@ -123,14 +125,30 @@ function AppRoutes() {
                 }
                 isAdmin={isAdminUser(user)}
                 onLogout={() => {
-                  localStorage.removeItem('auth_tokens')
-                  localStorage.removeItem('auth_user')
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
                   dispatch(clearTokensAndUser())
                   auth.signOut()
                   window.location.href = '/'
                 }}
-              />
-            </AdminLayout>
+              >
+                <Dashboard
+                  session={
+                    isAuthenticated
+                      ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                      : auth.session
+                  }
+                  isAdmin={isAdminUser(user)}
+                  onLogout={() => {
+                    sessionStorage.removeItem('auth_tokens')
+                    sessionStorage.removeItem('auth_user')
+                    dispatch(clearTokensAndUser())
+                    auth.signOut()
+                    window.location.href = '/'
+                  }}
+                />
+              </AdminLayout>
+            )}
           </ProtectedRoute>
         }
       />
@@ -164,8 +182,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -190,8 +208,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -216,8 +234,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -242,8 +260,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -268,8 +286,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -294,8 +312,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -319,8 +337,8 @@ function AppRoutes() {
               }
               isAdmin={isAdminUser(user)}
               onLogout={() => {
-                localStorage.removeItem('auth_tokens')
-                localStorage.removeItem('auth_user')
+                sessionStorage.removeItem('auth_tokens')
+                sessionStorage.removeItem('auth_user')
                 dispatch(clearTokensAndUser())
                 auth.signOut()
                 window.location.href = '/'
@@ -341,10 +359,17 @@ function AppRoutes() {
 function App() {
   const dispatch = useDispatch()
 
-  // Bootstrap auth state from localStorage on mount
+  // Bootstrap auth state from sessionStorage on mount.
+  // Sessions now live in sessionStorage so closing the tab automatically logs the user out.
   useEffect(() => {
-    const tokens = localStorage.getItem('auth_tokens')
-    const user = localStorage.getItem('auth_user')
+    // One-time cleanup of auth data persisted to localStorage by previous versions,
+    // which no longer gets read and would otherwise stay around forever.
+    localStorage.removeItem('auth_tokens')
+    localStorage.removeItem('auth_user')
+    localStorage.removeItem('sportsphere-demo-session')
+
+    const tokens = sessionStorage.getItem('auth_tokens')
+    const user = sessionStorage.getItem('auth_user')
 
     if (tokens && user) {
       try {
@@ -356,8 +381,8 @@ function App() {
         )
       } catch {
         // Ignore corrupted data
-        localStorage.removeItem('auth_tokens')
-        localStorage.removeItem('auth_user')
+        sessionStorage.removeItem('auth_tokens')
+        sessionStorage.removeItem('auth_user')
       }
     } else {
       // If no Redux auth but a demo session exists, restore it into Redux

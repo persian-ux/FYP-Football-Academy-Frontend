@@ -28,3 +28,15 @@ export function isAdminUser(user) {
       demoSession?.role === 'superadmin'
   )
 }
+
+/**
+ * Check if a user is a player (student).
+ * Players get their own player dashboard instead of the admin dashboard.
+ *
+ * @param {Object} user - The Redux auth user object
+ * @returns {boolean} - True if the user is a player
+ */
+export function isPlayerUser(user) {
+  const role = String(user?.role || '').toLowerCase()
+  return role === 'player' || role === 'student'
+}
