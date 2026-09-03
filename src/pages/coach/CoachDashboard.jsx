@@ -76,7 +76,13 @@ export default function CoachDashboard({ session, onLogout }) {
     // Each block fails independently so one broken module never blanks the page.
     try {
       const response = await getAttendanceRoster(todayString())
-      setRoster(Array.isArray(response?.data?.roster) ? response.data.roster : [])
+      const allRows = Array.isArray(response?.data?.roster) ? response.data.roster : []
+      // The backend scopes the roster to the coach's squad (own + assigned
+      // players). Show only the students here so the overview matches the
+      // attendance section — the coach's own row is omitted.
+      setRoster(
+        allRows.filter((row) => String(row.role || '').toLowerCase() !== 'coach')
+      )
     } catch {
       setRoster([])
     }
@@ -157,7 +163,7 @@ export default function CoachDashboard({ session, onLogout }) {
   const renderSection = () => {
     if (section === 'attendance') {
       return (
-        <CoachAttendance user={user} players={players} onDataChanged={bumpRefresh} />
+        <CoachAttendance players={players} onDataChanged={bumpRefresh} />
       )
     }
     if (section === 'scheduling' || section === 'matches' || section === 'teams') {

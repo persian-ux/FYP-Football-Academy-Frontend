@@ -99,7 +99,6 @@ function recordName(record) {
   )
 }
 
-
 /** Status select used in roster rows. */
 function StatusSelect({ value, onChange }) {
   return (
@@ -285,7 +284,7 @@ function RosterCard({ row, status, toggling, onToggle, onStatusChange, onEdit, o
  * Coaches manage their own attendance plus their assigned players'
  * attendance. The backend scopes the roster/records automatically.
  */
-export default function CoachAttendance({ user, players = [], onDataChanged = () => {} }) {
+export default function CoachAttendance({ players = [], onDataChanged = () => {} }) {
   const [activeTab, setActiveTab] = useState('daily')
 
   // Daily roster
@@ -322,8 +321,6 @@ export default function CoachAttendance({ user, players = [], onDataChanged = ()
   const [deleteTarget, setDeleteTarget] = useState(null) // { id, name }
   const [deleting, setDeleting] = useState(false)
 
-  const myUserId = user?.id ?? user?.user_id ?? null
-
   // ------------------------- Data loading -------------------------
   const loadRoster = useCallback(
     async (date) => {
@@ -344,17 +341,24 @@ export default function CoachAttendance({ user, players = [], onDataChanged = ()
         primaryError = extractApiError(err, 'Failed to load attendance roster')
       }
 
-      // Merge endpoint rows (they carry saved statuses) with the coach's
-      // assigned players and the coach's own row. Unassigned players are
-      // never included — `players` is already coach-scoped by the backend.
+      // The backend roster endpoint already scopes coaches to their assigned
+      // players (own record + assigned players). Here we surface only the
+      // students — the coach's own row is deliberately left out so the coach
+      // marks attendance for their players, not for themselves.
       const byUser = new Map()
       endpointRows.forEach((row) => {
-        if (row?.user_id != null) byUser.set(String(row.user_id), row)
+        const key = row?.user_id != null ? String(row.user_id) : null
+        const isCoachRow = String(row.role || '').toLowerCase() === 'coach'
+        if (key != null && !isCoachRow) byUser.set(key, row)
       })
+      // Fallback merge: assigned players that did not come back in the roster
+      // (e.g. newly assigned). `players` is coach-scoped by the backend.
       players.forEach((player) => {
         const userId = playerUserId(player)
-        if (userId == null || byUser.has(String(userId))) return
-        byUser.set(String(userId), {
+        if (userId == null) return
+        const key = String(userId)
+        if (byUser.has(key)) return
+        byUser.set(key, {
           user_id: userId,
           name: playerName(player),
           email: playerEmail(player),
@@ -363,18 +367,6 @@ export default function CoachAttendance({ user, players = [], onDataChanged = ()
           attendance_id: null,
         })
       })
-      if (myUserId != null && !byUser.has(String(myUserId))) {
-        const selfName =
-          [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.email || 'Me'
-        byUser.set(String(myUserId), {
-          user_id: myUserId,
-          name: `${selfName} (You)`,
-          email: user?.email || '',
-          role: 'coach',
-          status: null,
-          attendance_id: null,
-        })
-      }
 
       const list = Array.from(byUser.values())
       setRoster(list)
@@ -389,7 +381,7 @@ export default function CoachAttendance({ user, players = [], onDataChanged = ()
       setRosterLoading(false)
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [players, myUserId]
+    [players]
   )
 
   const loadRecords = useCallback(async () => {
@@ -397,6 +389,9 @@ export default function CoachAttendance({ user, players = [], onDataChanged = ()
     setHistoryError('')
     try {
       const params = { page, page_size: PAGE_SIZE }
+      // The records endpoint is scoped for coaches, but we only want student
+      // records here (the coach manages players, not their own attendance).
+      params.role = 'player'
       if (historyDate) params.date = historyDate
       if (historyStatus !== '__all') params.status = historyStatus
       const response = await listAttendanceRecords(params)
@@ -592,7 +587,7 @@ export default function CoachAttendance({ user, players = [], onDataChanged = ()
     <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
       <SectionHeader
         title="Attendance"
-        description="Manage daily attendance for yourself and your assigned players"
+        description="Mark daily attendance for your assigned players"
         icon={ClipboardCheck}
         actions={
           <>
@@ -707,7 +702,7 @@ export default function CoachAttendance({ user, players = [], onDataChanged = ()
             <EmptyState
               icon={ClipboardCheck}
               title="No roster members for this date"
-              description="Assigned players and your own attendance appear here."
+              description="Your assigned players appear here."
             />
           ) : (
             <>
@@ -927,7 +922,7 @@ export default function CoachAttendance({ user, players = [], onDataChanged = ()
           <DialogHeader>
             <DialogTitle>Add Attendance Record</DialogTitle>
             <DialogDescription className="text-gray-400">
-              Create a single record for one of your assigned players or for yourself.
+              Create a single record for one of your assigned players.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
