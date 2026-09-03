@@ -18,7 +18,6 @@ import {
   ClipboardCheck,
   ClipboardList,
   RefreshCw,
-  Eye,
   ChevronRight,
   Activity,
   Flame,
@@ -45,7 +44,6 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { isAdminUser } from '@/lib/admin'
 import { listUsers, listCoaches, listPlayers } from '@/redux/api/adminUsers'
 import {
@@ -187,7 +185,6 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
   })
   const [upcomingMatches, setUpcomingMatches] = useState([])
   const [teams, setTeams] = useState([])
-  const [recentUsers, setRecentUsers] = useState([])
   const [footballNews, setFootballNews] = useState([])
 
   // Mock timeline activity chart data tailored for the Academy
@@ -226,17 +223,15 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
       let activeUsers = 0
       let coaches = 0
       let players = 0
-      let latestUsersList = []
 
       if (effectiveIsAdmin) {
         try {
-          const [usersRes, activeRes, coachesRes, playersRes, recentUsersRes] =
+          const [usersRes, activeRes, coachesRes, playersRes] =
             await Promise.all([
               listUsers({ page: 1, page_size: 1 }),
               listUsers({ page: 1, page_size: 1, is_active: true }),
               listCoaches({ page: 1, page_size: 1 }),
               listPlayers({ page: 1, page_size: 1 }),
-              listUsers({ page: 1, page_size: 5, ordering: '-created_at' }),
             ])
 
           totalUsers = usersRes?.success ? (usersRes.data?.count || 0) : 0
@@ -244,11 +239,6 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
           coaches = coachesRes?.success ? (coachesRes.data?.count || 0) : 0
           players = playersRes?.success ? (playersRes.data?.count || 0) : 0
 
-          if (recentUsersRes?.success && Array.isArray(recentUsersRes.data?.results)) {
-            latestUsersList = recentUsersRes.data.results
-          } else if (Array.isArray(recentUsersRes?.data)) {
-            latestUsersList = recentUsersRes.data.slice(0, 5)
-          }
         } catch (uErr) {
           console.warn('User stats partial load:', uErr)
         }
@@ -318,7 +308,6 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
       })
       setUpcomingMatches(upcomingList)
       setTeams(teamsList)
-      setRecentUsers(latestUsersList)
       setFootballNews(newsItems.slice(0, 4))
     } catch (err) {
       console.error('Error loading dashboard:', err)
@@ -809,109 +798,6 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
               </CardContent>
             </Card>
 
-            {/* 3. Recent Member Registrations Table */}
-            {effectiveIsAdmin && (
-              <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-xl">
-                <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <div>
-                    <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                      <Users className="size-5 text-emerald-400" />
-                      Recent Academy Registrations
-                    </CardTitle>
-                    <CardDescription className="text-xs text-muted-foreground">
-                      Latest player and coach accounts added to Sportsphere
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/admin/users')}
-                    className="text-xs text-primary hover:text-primary/90"
-                  >
-                    Manage Users <ArrowUpRight className="size-3.5 ml-1" />
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {recentUsers.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead>
-                          <tr className="border-b border-border/40 text-muted-foreground">
-                            <th className="pb-2 font-medium">User</th>
-                            <th className="pb-2 font-medium">Role</th>
-                            <th className="pb-2 font-medium">Status</th>
-                            <th className="pb-2 text-right font-medium">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border/20">
-                          {recentUsers.map((u) => (
-                            <tr key={u.id} className="group hover:bg-white/[0.02]">
-                              <td className="py-2.5">
-                                <div className="flex items-center gap-2.5">
-                                  <Avatar className="size-7">
-                                    <AvatarFallback className="bg-blue-500/20 text-[10px] font-bold text-blue-400">
-                                      {u.first_name?.charAt(0) || u.email?.charAt(0) || 'U'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <p className="font-semibold text-white">
-                                      {u.first_name ? `${u.first_name} ${u.last_name || ''}` : u.email}
-                                    </p>
-                                    <p className="text-[11px] text-gray-400">{u.email}</p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="py-2.5">
-                                <Badge
-                                  variant="outline"
-                                  className={`text-[10px] uppercase font-semibold ${
-                                    u.role === 'coach'
-                                      ? 'border-purple-500/30 bg-purple-500/10 text-purple-300'
-                                      : u.role === 'admin'
-                                      ? 'border-blue-500/30 bg-blue-500/10 text-blue-300'
-                                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-                                  }`}
-                                >
-                                  {u.role || 'Member'}
-                                </Badge>
-                              </td>
-                              <td className="py-2.5">
-                                <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
-                                  <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                  {u.is_active !== false ? 'Active' : 'Inactive'}
-                                </span>
-                              </td>
-                              <td className="py-2.5 text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  onClick={() => navigate('/admin/users')}
-                                  className="text-gray-400 hover:text-white"
-                                >
-                                  <Eye className="size-3.5" />
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-border/50 p-6 text-center text-xs text-muted-foreground">
-                      <p>All active academy players and coaches are listed in User Management.</p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigate('/admin/users')}
-                        className="mt-3 text-xs"
-                      >
-                        Open User Management
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* RIGHT COLUMN: Teams / Squads & Quick Launch & Academy News */}
