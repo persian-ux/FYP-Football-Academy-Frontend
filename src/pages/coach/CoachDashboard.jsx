@@ -160,7 +160,7 @@ export default function CoachDashboard({ session, onLogout }) {
         <CoachAttendance user={user} players={players} onDataChanged={bumpRefresh} />
       )
     }
-    if (section === 'scheduling') {
+    if (section === 'scheduling' || section === 'matches' || section === 'teams') {
       return <CoachScheduling onDataChanged={bumpRefresh} />
     }
     if (section === 'reports') {
