@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 
 import Dashboard from './pages/Dashboard.jsx'
 import PlayerDashboard from './pages/PlayerDashboard.jsx'
+import CoachDashboard from './pages/coach/CoachDashboard.jsx'
 import HubPage from './pages/HubPage.tsx'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -25,7 +26,7 @@ import AdminLayout from './components/layout/AdminLayout'
 import { restoreSession, setCredentials, clearTokensAndUser } from './redux/slices/authSlice'
 import { useDemoAuth } from './hooks/useDemoAuth.ts'
 import { getStoredSession } from './lib/auth'
-import { isAdminUser, isPlayerUser } from './lib/admin'
+import { isAdminUser, isPlayerUser, isCoachUser } from './lib/admin'
 
 function AppRoutes() {
   const { isAuthenticated, user } = useSelector((state) => state.auth)
@@ -96,13 +97,29 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Protected routes — players get the player portal, everyone else keeps the admin dashboard */}
+      {/* Protected routes — players get the player portal, coaches get the coach
+          portal, everyone else keeps the admin dashboard */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
             {isPlayerUser(user) ? (
               <PlayerDashboard
+                session={
+                  isAuthenticated
+                    ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                    : auth.session
+                }
+                onLogout={() => {
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
+                  dispatch(clearTokensAndUser())
+                  auth.signOut()
+                  window.location.href = '/'
+                }}
+              />
+            ) : isCoachUser(user) ? (
+              <CoachDashboard
                 session={
                   isAuthenticated
                     ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
@@ -247,105 +264,121 @@ function AppRoutes() {
         }
       />
 
-      {/* Attendance — admins (full management) and coaches (record history read-only) */}
+      {/* Attendance — coaches manage their squad via the coach portal, admins via this page */}
       <Route
         path="/attendance"
         element={
           <ProtectedRoute>
-            <AdminLayout
-              session={
-                isAuthenticated
-                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
-                  : auth.session
-              }
-              isAdmin={isAdminUser(user)}
-              onLogout={() => {
-                sessionStorage.removeItem('auth_tokens')
-                sessionStorage.removeItem('auth_user')
-                dispatch(clearTokensAndUser())
-                auth.signOut()
-                window.location.href = '/'
-              }}
-            >
-              <AttendanceList isAdmin={isAdminUser(user)} />
-            </AdminLayout>
+            {isCoachUser(user) ? (
+              <Navigate to="/dashboard?section=attendance" replace />
+            ) : (
+              <AdminLayout
+                session={
+                  isAuthenticated
+                    ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                    : auth.session
+                }
+                isAdmin={isAdminUser(user)}
+                onLogout={() => {
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
+                  dispatch(clearTokensAndUser())
+                  auth.signOut()
+                  window.location.href = '/'
+                }}
+              >
+                <AttendanceList isAdmin={isAdminUser(user)} />
+              </AdminLayout>
+            )}
           </ProtectedRoute>
         }
       />
 
-      {/* Scheduling — matches page (read for all authenticated, manage for admins) */}
+      {/* Scheduling — coaches schedule their matches via the coach portal, admins via this page */}
       <Route
         path="/scheduling"
         element={
           <ProtectedRoute>
-            <AdminLayout
-              session={
-                isAuthenticated
-                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
-                  : auth.session
-              }
-              isAdmin={isAdminUser(user)}
-              onLogout={() => {
-                sessionStorage.removeItem('auth_tokens')
-                sessionStorage.removeItem('auth_user')
-                dispatch(clearTokensAndUser())
-                auth.signOut()
-                window.location.href = '/'
-              }}
-            >
-              <Matches isAdmin={isAdminUser(user)} />
-            </AdminLayout>
+            {isCoachUser(user) ? (
+              <Navigate to="/dashboard?section=scheduling" replace />
+            ) : (
+              <AdminLayout
+                session={
+                  isAuthenticated
+                    ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                    : auth.session
+                }
+                isAdmin={isAdminUser(user)}
+                onLogout={() => {
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
+                  dispatch(clearTokensAndUser())
+                  auth.signOut()
+                  window.location.href = '/'
+                }}
+              >
+                <Matches isAdmin={isAdminUser(user)} />
+              </AdminLayout>
+            )}
           </ProtectedRoute>
         }
       />
 
-      {/* Scheduling — teams page (read for all authenticated, manage for admins) */}
+      {/* Scheduling — teams page (manage for admins, coaches manage via the coach portal) */}
       <Route
         path="/scheduling/teams"
         element={
           <ProtectedRoute>
-            <AdminLayout
-              session={
-                isAuthenticated
-                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
-                  : auth.session
-              }
-              isAdmin={isAdminUser(user)}
-              onLogout={() => {
-                sessionStorage.removeItem('auth_tokens')
-                sessionStorage.removeItem('auth_user')
-                dispatch(clearTokensAndUser())
-                auth.signOut()
-                window.location.href = '/'
-              }}
-            >
-              <TeamsList />
-            </AdminLayout>
+            {isCoachUser(user) ? (
+              <Navigate to="/dashboard?section=scheduling" replace />
+            ) : (
+              <AdminLayout
+                session={
+                  isAuthenticated
+                    ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                    : auth.session
+                }
+                isAdmin={isAdminUser(user)}
+                onLogout={() => {
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
+                  dispatch(clearTokensAndUser())
+                  auth.signOut()
+                  window.location.href = '/'
+                }}
+              >
+                <TeamsList />
+              </AdminLayout>
+            )}
           </ProtectedRoute>
         }
       />
-{/* Student Reports — admins (full CRUD), coaches & players (read-only) */}
+      {/* Student Reports — coaches create/manage their reports via the coach portal, admins via this page */}
       <Route
         path="/reports"
         element={
           <ProtectedRoute>
-            <AdminLayout
-              session={
-                isAuthenticated
-                  ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
-                  : auth.session
-              }
-              isAdmin={isAdminUser(user)}
-              onLogout={() => {
-                sessionStorage.removeItem('auth_tokens')
-                sessionStorage.removeItem('auth_user')
-                dispatch(clearTokensAndUser())
-                auth.signOut()
-                window.location.href = '/'
-              }}
-            >
-              <StudentReports isAdmin={isAdminUser(user)} />
-            </AdminLayout>
+            {isCoachUser(user) ? (
+              <Navigate to="/dashboard?section=reports" replace />
+            ) : (
+              <AdminLayout
+                session={
+                  isAuthenticated
+                    ? { email: user?.email || '', displayName: user?.first_name || user?.email || 'User' }
+                    : auth.session
+                }
+                isAdmin={isAdminUser(user)}
+                onLogout={() => {
+                  sessionStorage.removeItem('auth_tokens')
+                  sessionStorage.removeItem('auth_user')
+                  dispatch(clearTokensAndUser())
+                  auth.signOut()
+                  window.location.href = '/'
+                }}
+              >
+                <StudentReports isAdmin={isAdminUser(user)} />
+              </AdminLayout>
+            )}
           </ProtectedRoute>
         }
       />

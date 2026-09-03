@@ -30,6 +30,23 @@ export function isAdminUser(user) {
 }
 
 /**
+ * Check if a user is a coach.
+ * Coaches get the coach dashboard (assigned players, attendance, matches, reports).
+ *
+ * @param {Object} user - The Redux auth user object
+ * @returns {boolean} - True if the user is a coach
+ */
+export function isCoachUser(user) {
+  if (isAdminUser(user) || isPlayerUser(user)) return false
+  const role = String(user?.role || '').toLowerCase()
+  if (role === 'coach' || role === 'head_coach') return true
+  // Fall back to demo session
+  const demoSession = getStoredSession()
+  const demoRole = String(demoSession?.role || '').toLowerCase()
+  return demoRole === 'coach' || demoRole === 'head_coach'
+}
+
+/**
  * Check if a user is a player (student).
  * Players get their own player dashboard instead of the admin dashboard.
  *

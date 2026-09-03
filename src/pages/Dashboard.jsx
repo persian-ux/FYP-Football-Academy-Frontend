@@ -18,7 +18,6 @@ import {
   ClipboardCheck,
   ClipboardList,
   RefreshCw,
-  Eye,
   ChevronRight,
   Activity,
   Flame,
@@ -45,7 +44,6 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { isAdminUser } from '@/lib/admin'
 import { listUsers, listCoaches, listPlayers } from '@/redux/api/adminUsers'
 import {
@@ -187,7 +185,6 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
   })
   const [upcomingMatches, setUpcomingMatches] = useState([])
   const [teams, setTeams] = useState([])
-  const [recentUsers, setRecentUsers] = useState([])
   const [footballNews, setFootballNews] = useState([])
 
   // Mock timeline activity chart data tailored for the Academy
@@ -226,17 +223,15 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
       let activeUsers = 0
       let coaches = 0
       let players = 0
-      let latestUsersList = []
 
       if (effectiveIsAdmin) {
         try {
-          const [usersRes, activeRes, coachesRes, playersRes, recentUsersRes] =
+          const [usersRes, activeRes, coachesRes, playersRes] =
             await Promise.all([
               listUsers({ page: 1, page_size: 1 }),
               listUsers({ page: 1, page_size: 1, is_active: true }),
               listCoaches({ page: 1, page_size: 1 }),
               listPlayers({ page: 1, page_size: 1 }),
-              listUsers({ page: 1, page_size: 5, ordering: '-created_at' }),
             ])
 
           totalUsers = usersRes?.success ? (usersRes.data?.count || 0) : 0
@@ -244,11 +239,6 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
           coaches = coachesRes?.success ? (coachesRes.data?.count || 0) : 0
           players = playersRes?.success ? (playersRes.data?.count || 0) : 0
 
-          if (recentUsersRes?.success && Array.isArray(recentUsersRes.data?.results)) {
-            latestUsersList = recentUsersRes.data.results
-          } else if (Array.isArray(recentUsersRes?.data)) {
-            latestUsersList = recentUsersRes.data.slice(0, 5)
-          }
         } catch (uErr) {
           console.warn('User stats partial load:', uErr)
         }
@@ -318,7 +308,6 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
       })
       setUpcomingMatches(upcomingList)
       setTeams(teamsList)
-      setRecentUsers(latestUsersList)
       setFootballNews(newsItems.slice(0, 4))
     } catch (err) {
       console.error('Error loading dashboard:', err)
@@ -722,340 +711,11 @@ export default function Dashboard({ session, onLogout, isAdmin = false }) {
                 </div>
               </CardContent>
             </Card>
-
-            {/* 2. Coming Matches & Fixtures Widget */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <div>
-                  <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                    <CalendarDays className="size-5 text-amber-400" />
-                    Coming Matches & Fixtures
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">
-                    Upcoming academy matches and scheduled showdowns
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/scheduling')}
-                  className="text-xs text-primary hover:text-primary/90"
-                >
-                  View All Matches <ArrowUpRight className="size-3.5 ml-1" />
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {displayMatches.slice(0, 3).map((match) => (
-                  <div
-                    key={match.id}
-                    className="group relative flex flex-col justify-between gap-3 rounded-2xl border border-border/50 bg-white/[0.02] p-4 transition-all duration-200 hover:border-amber-500/30 hover:bg-white/[0.04] sm:flex-row sm:items-center"
-                  >
-                    {/* Home vs Away & Badges */}
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant="outline"
-                          className="border-amber-500/30 bg-amber-500/10 text-amber-300 text-[10px] uppercase font-bold"
-                        >
-                          {match.status || 'SCHEDULED'}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="size-3 text-gray-400" />
-                          {formatDateTime(match.match_date)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                          <div className="flex size-7 items-center justify-center rounded-lg bg-blue-500/20 text-xs font-bold text-blue-400">
-                            H
-                          </div>
-                          <span className="font-semibold text-white text-sm">
-                            {match.home_team_name || match.homeTeam || 'Home Team'}
-                          </span>
-                        </div>
-                        <span className="text-xs font-bold text-gray-500">VS</span>
-                        <div className="flex items-center gap-2">
-                          <div className="flex size-7 items-center justify-center rounded-lg bg-purple-500/20 text-xs font-bold text-purple-400">
-                            A
-                          </div>
-                          <span className="font-semibold text-white text-sm">
-                            {match.away_team_name || match.awayTeam || 'Away Team'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {match.venue && (
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <MapPin className="size-3 mr-1 text-gray-400" />
-                          {match.venue}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Action */}
-                    <div className="flex items-center justify-end">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigate('/scheduling')}
-                        className="border-border/60 bg-white/5 text-xs text-gray-300 hover:bg-white/10 hover:text-white"
-                      >
-                        Match Details
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* 3. Recent Member Registrations Table */}
-            {effectiveIsAdmin && (
-              <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-xl">
-                <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <div>
-                    <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                      <Users className="size-5 text-emerald-400" />
-                      Recent Academy Registrations
-                    </CardTitle>
-                    <CardDescription className="text-xs text-muted-foreground">
-                      Latest player and coach accounts added to Sportsphere
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/admin/users')}
-                    className="text-xs text-primary hover:text-primary/90"
-                  >
-                    Manage Users <ArrowUpRight className="size-3.5 ml-1" />
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  {recentUsers.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead>
-                          <tr className="border-b border-border/40 text-muted-foreground">
-                            <th className="pb-2 font-medium">User</th>
-                            <th className="pb-2 font-medium">Role</th>
-                            <th className="pb-2 font-medium">Status</th>
-                            <th className="pb-2 text-right font-medium">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border/20">
-                          {recentUsers.map((u) => (
-                            <tr key={u.id} className="group hover:bg-white/[0.02]">
-                              <td className="py-2.5">
-                                <div className="flex items-center gap-2.5">
-                                  <Avatar className="size-7">
-                                    <AvatarFallback className="bg-blue-500/20 text-[10px] font-bold text-blue-400">
-                                      {u.first_name?.charAt(0) || u.email?.charAt(0) || 'U'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                    <p className="font-semibold text-white">
-                                      {u.first_name ? `${u.first_name} ${u.last_name || ''}` : u.email}
-                                    </p>
-                                    <p className="text-[11px] text-gray-400">{u.email}</p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="py-2.5">
-                                <Badge
-                                  variant="outline"
-                                  className={`text-[10px] uppercase font-semibold ${
-                                    u.role === 'coach'
-                                      ? 'border-purple-500/30 bg-purple-500/10 text-purple-300'
-                                      : u.role === 'admin'
-                                      ? 'border-blue-500/30 bg-blue-500/10 text-blue-300'
-                                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-                                  }`}
-                                >
-                                  {u.role || 'Member'}
-                                </Badge>
-                              </td>
-                              <td className="py-2.5">
-                                <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
-                                  <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                  {u.is_active !== false ? 'Active' : 'Inactive'}
-                                </span>
-                              </td>
-                              <td className="py-2.5 text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  onClick={() => navigate('/admin/users')}
-                                  className="text-gray-400 hover:text-white"
-                                >
-                                  <Eye className="size-3.5" />
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-border/50 p-6 text-center text-xs text-muted-foreground">
-                      <p>All active academy players and coaches are listed in User Management.</p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigate('/admin/users')}
-                        className="mt-3 text-xs"
-                      >
-                        Open User Management
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* RIGHT COLUMN: Teams / Squads & Quick Launch & Academy News */}
           <div className="flex flex-col gap-6">
-            {/* 1. Academy Teams & Squads Card */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-xl">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <div>
-                  <CardTitle className="text-lg font-bold text-white flex items-center gap-2">
-                    <Shield className="size-5 text-blue-400" />
-                    Academy Squads & Teams
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">
-                    Active roster groups & divisions
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/scheduling/teams')}
-                  className="text-xs text-primary hover:text-primary/90"
-                >
-                  All Teams <ArrowUpRight className="size-3.5 ml-1" />
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {displayTeams.slice(0, 3).map((team) => (
-                  <div
-                    key={team.id}
-                    onClick={() => navigate('/scheduling/teams')}
-                    className="group flex cursor-pointer items-center justify-between rounded-2xl border border-border/40 bg-white/[0.02] p-3.5 transition-all duration-200 hover:border-blue-500/30 hover:bg-white/[0.04]"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 font-black text-blue-300 border border-blue-500/30">
-                        {team.short_code || team.name?.substring(0, 2).toUpperCase() || 'TM'}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
-                          {team.name}
-                        </h4>
-                        <p className="text-xs text-gray-400">
-                          {team.coach_name || team.coach || 'Coach Assigned'} •{' '}
-                          <span className="text-emerald-400 font-medium">
-                            {team.players_count || team.players?.length || 18} Players
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="size-4 text-gray-500 transition-transform group-hover:translate-x-1 group-hover:text-white" />
-                  </div>
-                ))}
-
-                {effectiveIsAdmin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/scheduling/teams')}
-                    className="w-full border-dashed border-border/60 bg-transparent text-xs text-gray-300 hover:bg-white/5 hover:text-white"
-                  >
-                    <Plus className="size-3.5 mr-1" />
-                    Create New Academy Team
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 2. Academy Quick Action Hub */}
-            <Card className="border-border/50 bg-gradient-to-br from-blue-900/20 via-card/50 to-purple-900/10 backdrop-blur-xl shadow-xl">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold text-white flex items-center gap-2">
-                  <Sparkles className="size-4 text-primary" />
-                  Quick Action Center
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  Direct navigation to key academy workflows
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-2.5">
-                {effectiveIsAdmin && (
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate('/admin/users')}
-                    className="h-auto flex-col items-start gap-1 p-3 text-left border-border/60 bg-white/5 hover:bg-blue-500/10 hover:border-blue-500/30"
-                  >
-                    <Users className="size-4 text-blue-400" />
-                    <span className="text-xs font-semibold text-white">Manage Users</span>
-                    <span className="text-[10px] text-gray-400">Coaches & Players</span>
-                  </Button>
-                )}
-
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/scheduling')}
-                  className="h-auto flex-col items-start gap-1 p-3 text-left border-border/60 bg-white/5 hover:bg-amber-500/10 hover:border-amber-500/30"
-                >
-                  <CalendarDays className="size-4 text-amber-400" />
-                  <span className="text-xs font-semibold text-white">Matches & Schedule</span>
-                  <span className="text-[10px] text-gray-400">Fixtures & Venues</span>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/attendance')}
-                  className="h-auto flex-col items-start gap-1 p-3 text-left border-border/60 bg-white/5 hover:bg-purple-500/10 hover:border-purple-500/30"
-                >
-                  <ClipboardCheck className="size-4 text-purple-400" />
-                  <span className="text-xs font-semibold text-white">Attendance</span>
-                  <span className="text-[10px] text-gray-400">Track Sessions</span>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/sections')}
-                  className="h-auto flex-col items-start gap-1 p-3 text-left border-border/60 bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/30"
-                >
-                  <Layers className="size-4 text-emerald-400" />
-                  <span className="text-xs font-semibold text-white">Sections</span>
-                  <span className="text-[10px] text-gray-400">Training Batches</span>
-                </Button>
-
-                {effectiveIsAdmin && (
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate('/admin/fees')}
-                    className="h-auto flex-col items-start gap-1 p-3 text-left border-border/60 bg-white/5 hover:bg-cyan-500/10 hover:border-cyan-500/30"
-                  >
-                    <Wallet className="size-4 text-cyan-400" />
-                    <span className="text-xs font-semibold text-white">Fee Management</span>
-                    <span className="text-[10px] text-gray-400">Tuition & Records</span>
-                  </Button>
-                )}
-
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/reports')}
-                  className="h-auto flex-col items-start gap-1 p-3 text-left border-border/60 bg-white/5 hover:bg-rose-500/10 hover:border-rose-500/30"
-                >
-                  <ClipboardList className="size-4 text-rose-400" />
-                  <span className="text-xs font-semibold text-white">Student Reports</span>
-                  <span className="text-[10px] text-gray-400">Evaluations</span>
-                </Button>
-              </CardContent>
-            </Card>
-
+            
             {/* 3. Live Football News & Scouting Desk */}
             {footballNews.length > 0 && (
               <Card className="border-border/50 bg-card/50 backdrop-blur-xl shadow-xl">
